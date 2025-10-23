@@ -12,9 +12,53 @@ Homeostat is an agentic fix pipeline that restores your repo to a steady, health
 - `.claude-context` - Session state
 - `AGENTS.md` - AI agent coordination
 - `README.md` - Project documentation
+- `docs/LOGGER-INTEGRATION.md` - **Integration contract with logger (READ FIRST)**
 - `docs/IMPLEMENTATION-ROADMAP.md` - Complete Phase 0-5 implementation plan
 - `docs/DEEPSEEK-MULTI-AI-ARCHITECTURE.md` - System architecture
 - `docs/PRIVACY-SECURITY-GUIDE.md` - Security framework
+
+## Integration with Logger
+
+**CRITICAL**: Homeostat receives errors from the [Logger](https://github.com/littlebearapps/logger) via GitHub issues.
+
+### Trigger Mechanism
+
+Homeostat activates when a GitHub issue is created with the **`robot` label**:
+
+```yaml
+# GitHub Actions workflow
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  fix:
+    if: github.event.label.name == 'robot'
+    uses: littlebearapps/homeostat/.github/workflows/fix-error.yml@main
+```
+
+### Expected Issue Format
+
+**See [docs/LOGGER-INTEGRATION.md](docs/LOGGER-INTEGRATION.md) for the complete integration contract.**
+
+**Quick Summary**:
+- **Title**: `[ExtensionName] ErrorType: Error message`
+- **Labels**: `robot` (required), extension name (e.g., `notebridge`)
+- **Body Sections**: Error Details, Stack Trace, Breadcrumbs, User Description (optional)
+
+**Required Fields for Homeostat**:
+- Stack trace (PII sanitized by logger)
+- Error type (for tier selection)
+- Fingerprint (for deduplication)
+- Breadcrumbs (user actions leading to error)
+- Extension metadata (version, timestamp)
+
+**Example Parsing**:
+```javascript
+const { extensionName, errorType } = parseIssueTitle(issue.title);
+const { stackTrace, breadcrumbs, fingerprint } = parseIssueBody(issue.body);
+// Use data for complexity analysis and fix generation
+```
 
 ## 📖 Global Instructions
 
