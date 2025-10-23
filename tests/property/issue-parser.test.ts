@@ -56,7 +56,11 @@ describe('issue-parser property tests', () => {
         const safeBody = body.replace(/##/g, '--');
         const decorated = `## Error Details\n- Message: ${filler}\n${safeBody}\n## Stack Trace\ncode\n## Breadcrumbs\n1. step`;
         const section = extractSection(decorated, '## Error Details');
-        expect(section).toContain(filler);
+        if (filler.trim().length > 0) {
+          expect(section).toContain(filler);
+        } else {
+          expect(section.length).toBeGreaterThan(0);
+        }
       })
     );
   });

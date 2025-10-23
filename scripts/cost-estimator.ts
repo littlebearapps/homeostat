@@ -1,20 +1,17 @@
-export interface CostEstimate {
-  tier1Fixes: number;
-  tier2Fixes: number;
-  tier3Fixes: number;
-  totalCost: number;
-  meetsTarget: boolean; // <= $9.28/year
-}
+import { CostTracker } from '../shared/cost/tracker';
 
-// Calculate projected annual cost based on tier distribution and retry multipliers.
-// TODO (P3): replace placeholder math with instrumentation-backed metrics.
-export function estimateAnnualCost(fixes: number): CostEstimate {
-  // TODO: Implement in P3
-  // Use 70/25/5 distribution with retry multipliers
-  const tier1Fixes = Math.round(fixes * 0.7);
-  const tier2Fixes = Math.round(fixes * 0.25);
-  const tier3Fixes = Math.max(0, fixes - tier1Fixes - tier2Fixes);
-  const totalCost = 0;
-  const meetsTarget = true;
-  return { tier1Fixes, tier2Fixes, tier3Fixes, totalCost, meetsTarget };
-}
+const tracker = new CostTracker();
+
+tracker.trackUsage({ model: 'deepseek', inputTokens: 800, outputTokens: 400, issueNumber: 1, tier: 1 });
+tracker.trackUsage({ model: 'deepseek', inputTokens: 2000, outputTokens: 400, issueNumber: 2, tier: 2 });
+tracker.trackUsage({ model: 'gpt5', inputTokens: 0, outputTokens: 200, issueNumber: 2, tier: 2 });
+tracker.trackUsage({ model: 'gpt5', inputTokens: 400, outputTokens: 150, issueNumber: 3, tier: 3 });
+
+const metrics = tracker.exportMetrics();
+
+console.log('💰 Cost Metrics:');
+console.log(JSON.stringify(metrics, null, 2));
+
+const meetsTarget = metrics.projectedAnnualCost <= 9.28;
+console.log(`\n${meetsTarget ? '✅' : '❌'} Target: $9.28/year`);
+console.log(`📊 Projected: $${metrics.projectedAnnualCost.toFixed(2)}/year`);

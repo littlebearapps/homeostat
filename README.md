@@ -105,6 +105,23 @@ jobs:
 - ⏳ Phase 0: Privacy & Security (8-10 hours) - In planning
 - ⏳ Phase 1-5: Implementation (37-53 hours) - Documented
 
+## Benchmarking & Cost Tracking
+
+Run the synthetic benchmark to validate latency and projected spend using mocked AI calls:
+
+```bash
+npm run bench
+```
+
+Results are written to `benches/results/latest.json` and include median/p95 latency, tier token usage, and the projected annual
+cost for 1,000 fixes. Use the cost checker to review per-tier spend assumptions:
+
+```bash
+npm run cost:check
+```
+
+Both commands execute locally in under 10 seconds and rely solely on simulated workloads—no external API access required.
+
 ## License
 
 MIT © Little Bear Apps
