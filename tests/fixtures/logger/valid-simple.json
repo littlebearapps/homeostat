@@ -1,0 +1,9 @@
+{
+  "number": 101,
+  "title": "[NoteBridge] TypeError: Cannot read property 'sync'",
+  "body": "## Error Details\n- Extension: NoteBridge v1.2.0\n- Message: Cannot read property 'sync' of undefined\n- Fingerprint: nb-001\n- Timestamp: 2025-03-18T12:34:56Z\n\n## Stack Trace\n```\nTypeError: Cannot read property 'sync' of undefined\n    at background/index.js:12:5\n```\n\n## Breadcrumbs\n1. User clicked the sync button\n2. Background script invoked syncStorage\n",
+  "labels": [
+    { "name": "robot" },
+    { "name": "notebridge" }
+  ]
+}

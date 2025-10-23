@@ -1,0 +1,10 @@
+{
+  "number": 303,
+  "title": "[ConvertMyFile] SecurityError: Storage access denied",
+  "body": "## Error Details\n- Extension: ConvertMyFile v5.1.0\n- Message: Storage access denied\n- Fingerprint: cmf-512\n- Timestamp: 2025-03-18T18:45:00Z\n\n## Stack Trace\n```\nSecurityError: Storage access denied\n    at shared/security/crypto.js:120:9\n    at background/auth.js:52:11\n    at shared/user-data.js:33:5\n```\n\n## Breadcrumbs\n1. OAuth login completed\n2. Background requested encryption key\n3. Storage read was rejected by browser\n",
+  "labels": [
+    { "name": "robot" },
+    { "name": "convertmyfile" },
+    { "name": "security" }
+  ]
+}

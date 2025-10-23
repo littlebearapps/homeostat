@@ -1,0 +1,108 @@
+# Emails
+user@example.com
+test.user+alias@subdomain.example.co.uk
+partial@
+unicode.名字@example.com
+مرحبا@مثال.السعودية
+student@university.edu
+support@company.io
+first.last@domain.travel
+sales@bücher.de
+工程师@例子.中国
+
+# API Keys
+sk-proj-abc123def456ghi789jkl012mno345pqr678stu901vwx234yz
+AKIA1234567890ABCDEF
+ghp_1234567890abcdefghijklmnopqrstuv123456
+sk_live_abcdefghijklmnopqrstu123456
+github_pat_11AABBCCDDEE112233445566778899AABBCCDDEEFFGGHHIIJJ
+lin_api_abcd1234abcd1234abcd1234abcd1234abcd1234
+plausible_public_api_key_abc123XYZ987654
+AIzaSyA-ComplexKey1234567890abcdefghiJKL
+
+# Credit Cards
+4532-1234-5678-9010
+5425233430109903
+378282246310005
+6011 1111 1111 1117
+3528-0000-0000-0000
+
+# SSNs
+123-45-6789
+987654321
+321-54-9876
+
+# Phone Numbers
++1-555-123-4567
+(555) 123-4567
+555.123.4567
++44 20 7946 0958
++91-98765-43210
+
+# IP Addresses
+192.168.1.1
+2001:0db8:85a3:0000:0000:8a2e:0370:7334
+10.0.0.42
+172.16.0.5
+fe80::1ff:fe23:4567:890a
+
+# File Paths
+/Users/john.smith/Documents/secret.txt
+C:\Users\Administrator\Desktop\passwords.xlsx
+/home/ubuntu/.ssh/id_rsa
+/Users/árvíztűrő/Projects/private
+/home/用户/密码/notes.txt
+
+# JWTs
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJleGFtcGxlLmNvbSIsInVzZXIiOiJqb2UiLCJleHAiOjE2OTAwMDAwMDB9.Lm2tA2sH3NwUqC9dQX5rU0q2rtYf9L3x8Bz
+
+# OAuth Tokens
+gho_16C7e42F292c6912E7710c838347Ae178B4a
+xoxb-1234567890123-1234567890123-abcdefghijklmnopqrstuvwx
+EAAJZAyZA4ZAQ0BAM1ZAeZAyZA4ZAQ0BAZCZA6ZAFAZA6ZAJZA4ZAQ0BAZCvZA
+
+# Personal Names (multi-locale)
+John Smith
+María García
+李明
+محمد
+Zoë Faßbinder
+Søren Kierkegaard
+
+# Addresses
+123 Main St, Anytown, CA 94000
+Flat 5B, 10 Downing Street, London SW1A 2AA
+〒150-0001 東京都渋谷区神宮前1-1-1
+Av. Paulista, 1578 - Bela Vista, São Paulo - SP, 01310-200
+
+# URLs with Sensitive Params
+https://example.com?api_key=secret123&session=abc-def-ghi
+https://api.example.com?token=Bearer%20xyz789
+https://user:pass@example.com/private
+
+# Database Connection Strings
+mongodb://admin:password123@localhost:27017/mydb
+postgres://user:pass@db.example.com:5432/production
+mysql://root:verySecret!@127.0.0.1:3306/app
+
+# National IDs
+AB123456C
+A1234567
+身份证号11010519491231002X
+
+# Banking
+IBAN GB82WEST12345698765432
+routing 021000021 account 987654321
+SWIFT DEUTDEFF500
+
+# Misc Tokens
+-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD...
+-----END PRIVATE KEY-----
+Bearer eyJraWQiOiJrM...longtokenwithentropy...
+8f14e45fceea167a5a36dedd4bea2543
+
+# License Keys
+AAAAA-BBBBB-CCCCC-DDDDD-EEEEE
+XXXXX-YYYYY-ZZZZZ-12345-67890
