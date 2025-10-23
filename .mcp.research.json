@@ -1,0 +1,41 @@
+{
+  "mcpServers": {
+    "brave-search": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "source ~/bin/kc.sh && source ~/.config/kc/profiles.sh && load_mcp_secrets homeostat main && exec npx -y @modelcontextprotocol/server-brave-search"
+      ]
+    },
+    "context7": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "source ~/bin/kc.sh && source ~/.config/kc/profiles.sh && load_mcp_secrets homeostat main && exec npx -y @upstash/context7-mcp --api-key \"$CONTEXT7_API_KEY\""
+      ]
+    },
+    "zen": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "source ~/bin/kc.sh && source ~/.config/kc/profiles.sh && load_mcp_secrets homeostat main && exec /Users/nathanschram/claude-code-tools/mcp/zen/zen-mcp-server/zen-mcp-server"
+      ],
+      "cwd": "/Users/nathanschram/claude-code-tools/mcp/zen/instances/instJ",
+      "env": {
+        "ZEN_INSTANCE_NAME": "zen-project-j",
+        "ZEN_PORT": "7520",
+        "DEFAULT_MODEL": "gpt-5",
+        "ZEN_DISABLED": "0",
+        "ZEN_MAX_OUTPUT_TOKENS": "1024",
+        "ZEN_MAX_INPUT_TOKENS": "12000",
+        "ZEN_MAX_RETRIES": "1",
+        "ZEN_ENABLE_SAFE_CONTINUATION": "1",
+        "ZEN_DAILY_SOFT_BUDGET_USD": "2.50",
+        "ZEN_MINUTES_RATE_LIMIT": "60",
+        "OPENAI_ALLOWED_MODELS": "gpt-5",
+        "LOG_LEVEL": "INFO",
+        "DISABLED_TOOLS": "analyze,refactor,testgen,secaudit,docgen,tracer"
+      }
+    }
+  }
+}

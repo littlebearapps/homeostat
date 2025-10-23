@@ -1,0 +1,31 @@
+{
+  "name": "homeostat",
+  "version": "0.1.0",
+  "description": "An agentic fix pipeline that restores your repo to a steady, healthy state",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "lint": "eslint src/",
+    "format": "prettier --write \"src/**/*.js\""
+  },
+  "keywords": [
+    "ai",
+    "automation",
+    "bug-fixing",
+    "github-actions",
+    "deepseek",
+    "gpt-5",
+    "error-handling"
+  ],
+  "author": "Little Bear Apps",
+  "license": "MIT",
+  "devDependencies": {
+    "vitest": "^1.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  },
+  "dependencies": {
+    "openai": "^4.0.0"
+  }
+}
