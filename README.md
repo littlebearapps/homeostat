@@ -56,6 +56,11 @@ The logger creates issues in a specific format that Homeostat parses. **See [doc
 - [DeepSeek Multi-AI Architecture](docs/DEEPSEEK-MULTI-AI-ARCHITECTURE.md) - System design
 - [Privacy & Security Guide](docs/PRIVACY-SECURITY-GUIDE.md) - Security framework
 - [Follow-Up Q&A](docs/FOLLOW-UP-QUESTIONS-ANSWERED.md) - Architectural decisions
+- [API Documentation](docs/API.md) - Input contract, pipeline steps, and output formats
+- [Deployment Guide](docs/DEPLOYMENT.md) - Install workflow, configure secrets, and validate setup
+- [Operational Runbook](docs/RUNBOOK.md) - Day-2 operations, monitoring, and maintenance
+- [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Quick diagnostics and error resolution
+- [Privacy & Compliance](docs/PRIVACY.md) - GDPR/CCPA guarantees and sanitization coverage
 
 ## Installation
 
@@ -104,6 +109,23 @@ jobs:
 
 - ⏳ Phase 0: Privacy & Security (8-10 hours) - In planning
 - ⏳ Phase 1-5: Implementation (37-53 hours) - Documented
+
+## Benchmarking & Cost Tracking
+
+Run the synthetic benchmark to validate latency and projected spend using mocked AI calls:
+
+```bash
+npm run bench
+```
+
+Results are written to `benches/results/latest.json` and include median/p95 latency, tier token usage, and the projected annual
+cost for 1,000 fixes. Use the cost checker to review per-tier spend assumptions:
+
+```bash
+npm run cost:check
+```
+
+Both commands execute locally in under 10 seconds and rely solely on simulated workloads—no external API access required.
 
 ## License
 

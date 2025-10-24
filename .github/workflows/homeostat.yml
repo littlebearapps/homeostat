@@ -1,0 +1,96 @@
+name: Homeostat
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+concurrency:
+  group: homeostat-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  auto-fix:
+    if: contains(github.event.issue.labels.*.name, 'robot')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Analyze Error
+        id: analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node homeostat/routing/complexity-analyzer.js \
+            --issue-number ${{ github.event.issue.number }}
+
+      - name: Attempt Tier 1 Fix
+        if: steps.analyze.outputs.tier == '1'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          node homeostat/execution/tier1-fix.js \
+            --issue-number ${{ github.event.issue.number }}
+
+      - name: Attempt Tier 2 Fix
+        if: steps.analyze.outputs.tier == '2'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          node homeostat/execution/tier2-fix.js \
+            --issue-number ${{ github.event.issue.number }}
+
+      - name: Attempt Tier 3 Fix
+        if: steps.analyze.outputs.tier == '3'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          node homeostat/execution/tier3-fix.js \
+            --issue-number ${{ github.event.issue.number }}
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Deploy Canary
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node homeostat/deployment/canary.js \
+            --issue-number ${{ github.event.issue.number }}
+
+      - name: Update Issue
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --body "Homeostat run completed. Status: ${{ job.status }}"
+
+      - name: Cleanup artifacts
+        if: always()
+        run: |
+          find /tmp -name "homeostat-*" -mtime +7 -delete || true

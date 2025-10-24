@@ -1,0 +1,8 @@
+User email: alice@example.com
+Backup email: 用户@例子.公司
+API key: sk-abcdefghijklmnopqrstuvwxyz1234567890
+JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTYifQ.dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+Windows path: C:\\Users\\alice\\Documents\\secret.txt
+Unix path: /home/alice/.ssh/id_rsa
+URL with creds: https://user:pass@example.com/resource
+High entropy token: A5F3c6a11b38-9df4-5663-11837-59af-3c6a11b389d

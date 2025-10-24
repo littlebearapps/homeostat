@@ -1,0 +1,8 @@
+{
+  "number": 404,
+  "title": "[NoteBridge] TypeError: Cannot read property 'sync'",
+  "body": "## Error Details\n- Extension: NoteBridge v1.2.0\n- Message: Missing stack\n- Fingerprint: nb-404\n- Timestamp: 2025-03-18T20:00:00Z\n\n## Stack Trace\n\n## Breadcrumbs\n1. User triggered sync\n",
+  "labels": [
+    { "name": "robot" }
+  ]
+}

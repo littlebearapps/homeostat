@@ -1,0 +1,9 @@
+{
+  "number": 202,
+  "title": "[PaletteKit] ReferenceError: windowColor is not defined",
+  "body": "## Error Details\n- Extension: PaletteKit v3.4.5\n- Message: windowColor is not defined\n- Fingerprint: pk-204\n- Timestamp: 2025-03-18T15:01:00Z\n\n## Stack Trace\n```\nReferenceError: windowColor is not defined\n    at content/colors.js:88:12\n    at content/controller.js:45:8\n```\n\n## Breadcrumbs\n1. User opened the palette modal\n2. Content script applied theme\n3. Background acknowledged theme change\n",
+  "labels": [
+    { "name": "robot" },
+    { "name": "palettekit" }
+  ]
+}

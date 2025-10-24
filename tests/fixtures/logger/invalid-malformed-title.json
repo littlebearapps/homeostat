@@ -1,0 +1,8 @@
+{
+  "number": 405,
+  "title": "NoteBridge TypeError missing brackets",
+  "body": "## Error Details\n- Extension: NoteBridge v1.2.0\n- Message: Title malformed\n- Fingerprint: nb-405\n\n## Stack Trace\n```\nTypeError: Something happened\n    at popup/index.js:10:2\n```\n\n## Breadcrumbs\n1. User opened popup\n",
+  "labels": [
+    { "name": "robot" }
+  ]
+}
