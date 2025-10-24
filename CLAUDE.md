@@ -135,6 +135,18 @@ User: "Use git-workflow-manager to ship this feature"
 
 **Next Steps**: Deploy to Convert My File production (see `docs/REMAINING-TASKS.md`)
 
+### ⚙️ Feature Flag System
+
+**Environment Variable**: `HOMEOSTAT_ENV` (controls self-healing pattern learning)
+
+**Values**:
+- `dev` / `test` → Pattern extraction/learning DISABLED (safe testing, returns null)
+- `production` → Pattern extraction/learning ENABLED (learns from every successful fix)
+
+**Why**: Allows safe testing while enabling pattern accumulation from day 1 of production. Pattern library starts empty, grows automatically in production. No "scramble in 6 months" - infrastructure is ready now, just flip the env var.
+
+**Location**: Set in `.github/workflows/multi-repo-orchestrator.yml` (`env: HOMEOSTAT_ENV: production`)
+
 ## Implementation Status
 
 ✅ **Phase 0 (Privacy & Security)**: COMPLETE
