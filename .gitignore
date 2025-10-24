@@ -36,3 +36,6 @@ logs/
 tmp/
 temp/
 .tmp/
+
+# Benchmark results (keep directory with .gitkeep)
+benches/results/*.json
