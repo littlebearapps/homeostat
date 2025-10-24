@@ -14,6 +14,8 @@
     "test:security": "vitest run tests/security",
     "bench": "tsx scripts/run-benchmark.ts",
     "cost:check": "tsx scripts/cost-estimator.ts",
+    "slo:check": "tsx scripts/check-slos.ts",
+    "metrics:export": "tsx scripts/export-metrics.ts",
     "lint": "eslint src/",
     "format": "prettier --write \"src/**/*.js\""
   },
@@ -40,6 +42,7 @@
     "vitest": "^1.0.0"
   },
   "dependencies": {
-    "openai": "^4.0.0"
+    "openai": "^4.0.0",
+    "uuid": "^9.0.1"
   }
 }
