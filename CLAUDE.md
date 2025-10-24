@@ -12,9 +12,10 @@ Homeostat is an agentic fix pipeline that restores your repo to a steady, health
 - `.claude-context` - Session state
 - `AGENTS.md` - AI agent coordination
 - `README.md` - Project documentation
-- `docs/CLOAKPIPE-INTEGRATION.md` - **Integration contract with CloakPipe (READ FIRST)**
-- `docs/HIGH-PRIORITY-ENHANCEMENTS-PLAN.md` - **1-day implementation plan for enhancements**
+- `docs/NEXT-STEPS.md` - **Testing, deployment, and validation guide (START HERE)** ⭐
 - `docs/REMAINING-TASKS.md` - **Phase 2-3 deployment checklist**
+- `docs/CLOAKPIPE-INTEGRATION.md` - **Integration contract with CloakPipe**
+- `docs/HIGH-PRIORITY-ENHANCEMENTS-PLAN.md` - Completed 1-day implementation plan
 - `docs/FUTURE-ENHANCEMENTS.md` - Deferred enhancements (post-production)
 - `docs/IMPLEMENTATION-ROADMAP.md` - Complete Phase 0-5 implementation plan
 - `docs/DEEPSEEK-MULTI-AI-ARCHITECTURE.md` - System architecture
