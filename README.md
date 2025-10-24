@@ -56,6 +56,11 @@ The logger creates issues in a specific format that Homeostat parses. **See [doc
 - [DeepSeek Multi-AI Architecture](docs/DEEPSEEK-MULTI-AI-ARCHITECTURE.md) - System design
 - [Privacy & Security Guide](docs/PRIVACY-SECURITY-GUIDE.md) - Security framework
 - [Follow-Up Q&A](docs/FOLLOW-UP-QUESTIONS-ANSWERED.md) - Architectural decisions
+- [API Documentation](docs/API.md) - Input contract, pipeline steps, and output formats
+- [Deployment Guide](docs/DEPLOYMENT.md) - Install workflow, configure secrets, and validate setup
+- [Operational Runbook](docs/RUNBOOK.md) - Day-2 operations, monitoring, and maintenance
+- [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Quick diagnostics and error resolution
+- [Privacy & Compliance](docs/PRIVACY.md) - GDPR/CCPA guarantees and sanitization coverage
 
 ## Installation
 
