@@ -1,5 +1,6 @@
 # Codex Session 1: Infrastructure - Multi-Repository Support + Self-Healing Loop
 
+**Environment**: Codex Cloud (chatgpt.com/codex) or Codex CLI
 **Estimated Duration**: 10-14 hours
 **Objective**: Build complete infrastructure for multi-repo support and self-healing loop with feature flag controls
 **Branch**: `feature/high-priority-enhancements`
@@ -11,23 +12,36 @@
 **Before starting**:
 - ✅ Homeostat Phase 0-1 + P0-P6 complete (193/193 tests passing)
 - ✅ All documentation in `docs/HIGH-PRIORITY-ENHANCEMENTS-PLAN.md` reviewed
-- ✅ Clean git status on `main` branch
+- ✅ GitHub authentication configured (for pushing commits)
 
-**Reference Documents**:
+**Reference Documents** (will be available after clone):
 - `docs/HIGH-PRIORITY-ENHANCEMENTS-PLAN.md` - Complete implementation plan
 - `docs/REMAINING-TASKS.md` - Deployment checklist
 - `homeostat/orchestrator.ts` - Integration point for new infrastructure
 
 ---
 
-## Step 1: Create Feature Branch
+## Step 1: Clone Repository & Create Feature Branch
 
 ```bash
-cd /Users/nathanschram/claude-code-tools/lba/tools/homeostat/main
+# Clone the Homeostat repository
+git clone https://github.com/littlebearapps/homeostat.git
+cd homeostat
+
+# Verify we're in the right place
+ls -la  # Should see: homeostat/, shared/, tests/, docs/, etc.
+
+# Create and push feature branch
 git checkout main
 git pull origin main
 git checkout -b feature/high-priority-enhancements
 git push -u origin feature/high-priority-enhancements
+
+# Install dependencies
+npm install
+
+# Verify tests pass
+npm test  # Should show: 193/193 tests passing
 ```
 
 ---

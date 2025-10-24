@@ -1,5 +1,6 @@
 # Codex Session 2: Integration & Observability
 
+**Environment**: Codex Cloud (chatgpt.com/codex) or Codex CLI
 **Estimated Duration**: 2-4 hours
 **Objective**: Add enhanced observability, complete E2E integration testing, and finalize high-priority enhancements
 **Branch**: `feature/high-priority-enhancements` (continue from Session 1)
@@ -16,11 +17,21 @@
 
 **Validation Commands**:
 ```bash
-cd /Users/nathanschram/claude-code-tools/lba/tools/homeostat/main
+# If starting fresh in Codex Cloud, clone and checkout branch
+git clone https://github.com/littlebearapps/homeostat.git
+cd homeostat
 git checkout feature/high-priority-enhancements
 git pull origin feature/high-priority-enhancements
-npm test  # Should pass
-npm run build  # Should succeed
+
+# If continuing from Session 1, just pull latest
+# git pull origin feature/high-priority-enhancements
+
+# Install dependencies
+npm install
+
+# Verify Session 1 work
+npm test  # Should pass (193 + Session 1 new tests)
+npm run build  # Should succeed (TypeScript compilation)
 ```
 
 ---
