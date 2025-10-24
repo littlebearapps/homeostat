@@ -17,10 +17,6 @@ env:
 jobs:
   orchestrate:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        repo: [convert-my-file, notebridge, palette-kit]
-      max-parallel: 1
 
     steps:
       - name: Checkout Homeostat
@@ -35,40 +31,161 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Load Repo Config
-        id: config
+      - name: Run Homeostat (convert-my-file)
+        id: cmf
         run: |
-          CONFIG=$(yq e '.repositories[] | select(.slug == "littlebearapps/${{ matrix.repo }}")' .homeostat/repos.yml -o json)
-          echo "config=$CONFIG" >> $GITHUB_OUTPUT
-
-      - name: Clone Target Repo
-        run: |
+          CONFIG=$(yq e '.repositories[] | select(.slug == "littlebearapps/convert-my-file")' .homeostat/repos.yml -o json)
+          rm -rf target-repo
           git clone --depth=1 \
-            https://x-access-token:${{ secrets.HOMEOSTAT_PAT }}@github.com/littlebearapps/${{ matrix.repo }}.git \
+            https://x-access-token:${{ secrets.HOMEOSTAT_PAT }}@github.com/littlebearapps/convert-my-file.git \
             target-repo
-
-      - name: Run Homeostat
-        id: homeostat
-        run: |
           node homeostat/multi-repo/orchestrator.js \
-            --repo ${{ matrix.repo }} \
-            --config '${{ steps.config.outputs.config }}'
+            --repo convert-my-file \
+            --config "${CONFIG}"
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
 
-      - name: Generate Summary
+      - name: Run Homeostat (notebridge)
+        id: nb
+        run: |
+          CONFIG=$(yq e '.repositories[] | select(.slug == "littlebearapps/notebridge")' .homeostat/repos.yml -o json)
+          rm -rf target-repo
+          git clone --depth=1 \
+            https://x-access-token:${{ secrets.HOMEOSTAT_PAT }}@github.com/littlebearapps/notebridge.git \
+            target-repo
+          node homeostat/multi-repo/orchestrator.js \
+            --repo notebridge \
+            --config "${CONFIG}"
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
+
+      - name: Run Homeostat (palette-kit)
+        id: pk
+        run: |
+          CONFIG=$(yq e '.repositories[] | select(.slug == "littlebearapps/palette-kit")' .homeostat/repos.yml -o json)
+          rm -rf target-repo
+          git clone --depth=1 \
+            https://x-access-token:${{ secrets.HOMEOSTAT_PAT }}@github.com/littlebearapps/palette-kit.git \
+            target-repo
+          node homeostat/multi-repo/orchestrator.js \
+            --repo palette-kit \
+            --config "${CONFIG}"
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
+
+      - name: Compute Totals
+        id: totals
+        run: |
+          node <<'NODE' > totals.out
+          const parse = (value) => {
+            const numeric = Number(value);
+            return Number.isFinite(numeric) ? numeric : 0;
+          };
+          const toNumber = (value) => parse(value ?? 0);
+          const totals = {
+            cost: toNumber(process.env.CMF_COST) + toNumber(process.env.NB_COST) + toNumber(process.env.PK_COST),
+            tokens:
+              toNumber(process.env.CMF_TOKENS) +
+              toNumber(process.env.NB_TOKENS) +
+              toNumber(process.env.PK_TOKENS),
+            prsCreated:
+              toNumber(process.env.CMF_CREATED) +
+              toNumber(process.env.NB_CREATED) +
+              toNumber(process.env.PK_CREATED),
+            prsUpdated:
+              toNumber(process.env.CMF_UPDATED) +
+              toNumber(process.env.NB_UPDATED) +
+              toNumber(process.env.PK_UPDATED)
+          };
+          const budgetLimit = Number(process.env.MAX_RUN_COST ?? '0');
+          const remaining = Number.isFinite(budgetLimit)
+            ? Math.max(0, budgetLimit - totals.cost)
+            : 0;
+          console.log(`cost=${totals.cost.toFixed(2)}`);
+          console.log(`tokens=${totals.tokens}`);
+          console.log(`prs_created=${totals.prsCreated}`);
+          console.log(`prs_updated=${totals.prsUpdated}`);
+          console.log(`budget_remaining=${remaining.toFixed(2)}`);
+          NODE
+          while IFS= read -r line; do echo "$line" >> "$GITHUB_OUTPUT"; done < totals.out
+        env:
+          CMF_COST: ${{ steps.cmf.outputs.cost }}
+          NB_COST: ${{ steps.nb.outputs.cost }}
+          PK_COST: ${{ steps.pk.outputs.cost }}
+          CMF_TOKENS: ${{ steps.cmf.outputs.tokens }}
+          NB_TOKENS: ${{ steps.nb.outputs.tokens }}
+          PK_TOKENS: ${{ steps.pk.outputs.tokens }}
+          CMF_CREATED: ${{ steps.cmf.outputs.created }}
+          NB_CREATED: ${{ steps.nb.outputs.created }}
+          PK_CREATED: ${{ steps.pk.outputs.created }}
+          CMF_UPDATED: ${{ steps.cmf.outputs.updated }}
+          NB_UPDATED: ${{ steps.nb.outputs.updated }}
+          PK_UPDATED: ${{ steps.pk.outputs.updated }}
+          MAX_RUN_COST: ${{ env.MAX_RUN_COST }}
+
+      - name: Pattern Metrics
+        id: patterns
+        run: |
+          node <<'NODE' > patterns.out
+          const { readFileSync } = require('node:fs');
+          const data = JSON.parse(readFileSync('shared/patterns/library.json', 'utf8'));
+          const total = Array.isArray(data.patterns) ? data.patterns.length : 0;
+          const used =
+            Number(process.env.CMF_PATTERNS_USED ?? '0') +
+            Number(process.env.NB_PATTERNS_USED ?? '0') +
+            Number(process.env.PK_PATTERNS_USED ?? '0');
+          const zero =
+            Number(process.env.CMF_ZERO_COST ?? '0') +
+            Number(process.env.NB_ZERO_COST ?? '0') +
+            Number(process.env.PK_ZERO_COST ?? '0');
+          console.log(`total=${total}`);
+          console.log(`used=${used}`);
+          console.log(`zero_cost=${zero}`);
+          NODE
+          while IFS= read -r line; do echo "$line" >> "$GITHUB_OUTPUT"; done < patterns.out
+        env:
+          CMF_PATTERNS_USED: ${{ steps.cmf.outputs.patterns_used }}
+          NB_PATTERNS_USED: ${{ steps.nb.outputs.patterns_used }}
+          PK_PATTERNS_USED: ${{ steps.pk.outputs.patterns_used }}
+          CMF_ZERO_COST: ${{ steps.cmf.outputs.zero_cost }}
+          NB_ZERO_COST: ${{ steps.nb.outputs.zero_cost }}
+          PK_ZERO_COST: ${{ steps.pk.outputs.zero_cost }}
+
+      - name: Generate Detailed Summary
         if: always()
         run: |
-          cat > $GITHUB_STEP_SUMMARY << EOF
-          ## Homeostat Run: ${{ matrix.repo }}
+          cat > $GITHUB_STEP_SUMMARY << 'EOF'
+          ## 🤖 Homeostat Multi-Repo Run
 
-          **Repository**: littlebearapps/${{ matrix.repo }}
-          **Issues Processed**: ${{ steps.homeostat.outputs.processed }}
-          **PRs Created**: ${{ steps.homeostat.outputs.created }}
-          **PRs Updated**: ${{ steps.homeostat.outputs.updated }}
-          **Fingerprints Cooled Down**: ${{ steps.homeostat.outputs.cooldown }}
-          **Cost**: \${{ steps.homeostat.outputs.cost }}
-          **Tokens**: ${{ steps.homeostat.outputs.tokens }}
+          **Timestamp**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+          | Repository | Issues Processed | PRs Created | PRs Updated | Cooldowns | Cost | Tokens |
+          |------------|------------------|-------------|-------------|-----------|------|--------|
+          | convert-my-file | ${{ steps.cmf.outputs.processed }} | ${{ steps.cmf.outputs.created }} | ${{ steps.cmf.outputs.updated }} | ${{ steps.cmf.outputs.cooldown }} | \${{ steps.cmf.outputs.cost }} | ${{ steps.cmf.outputs.tokens }} |
+          | notebridge | ${{ steps.nb.outputs.processed }} | ${{ steps.nb.outputs.created }} | ${{ steps.nb.outputs.updated }} | ${{ steps.nb.outputs.cooldown }} | \${{ steps.nb.outputs.cost }} | ${{ steps.nb.outputs.tokens }} |
+          | palette-kit | ${{ steps.pk.outputs.processed }} | ${{ steps.pk.outputs.created }} | ${{ steps.pk.outputs.updated }} | ${{ steps.pk.outputs.cooldown }} | \${{ steps.pk.outputs.cost }} | ${{ steps.pk.outputs.tokens }} |
+
+          ### Totals
+          - **Total Cost**: \${{ steps.totals.outputs.cost }}
+          - **Total Tokens**: ${{ steps.totals.outputs.tokens }}
+          - **Total PRs Created**: ${{ steps.totals.outputs.prs_created }}
+          - **Total PRs Updated**: ${{ steps.totals.outputs.prs_updated }}
+
+          ### Pattern Library Status
+          - **Patterns in Library**: ${{ steps.patterns.outputs.total }}
+          - **Patterns Used This Run**: ${{ steps.patterns.outputs.used }}
+          - **Zero-Cost Fixes**: ${{ steps.patterns.outputs.zero_cost }}
+
+          ### Safety Metrics
+          - **Max Diff Lines**: ${{ env.MAX_DIFF_LINES }}
+          - **Max Files Changed**: ${{ env.MAX_FILES }}
+          - **Budget Limit**: \${{ env.MAX_RUN_COST }}
+          - **Budget Used**: \${{ steps.totals.outputs.cost }}
+          - **Budget Remaining**: \${{ steps.totals.outputs.budget_remaining }}
           EOF

@@ -22,7 +22,7 @@ export interface AttemptStoreOptions {
 }
 
 const DEFAULT_FILE = 'attempt-store.json';
-const MAX_ATTEMPTS = 3;
+export const MAX_ATTEMPTS = 3;
 const BASE_COOLDOWN_HOURS = 24;
 
 export class AttemptStore {
@@ -32,8 +32,13 @@ export class AttemptStore {
   private loaded = false;
 
   constructor(options: AttemptStoreOptions = {}) {
-    const storageDir = options.storageDir ?? path.join(process.cwd(), '.homeostat');
-    this.storagePath = path.join(storageDir, options.fileName ?? DEFAULT_FILE);
+    const envPath = process.env.HOMEOSTAT_ATTEMPT_STORE_PATH;
+    if (envPath) {
+      this.storagePath = path.resolve(envPath);
+    } else {
+      const storageDir = options.storageDir ?? path.join(process.cwd(), '.homeostat');
+      this.storagePath = path.join(storageDir, options.fileName ?? DEFAULT_FILE);
+    }
     this.now = options.now ?? (() => new Date());
   }
 

@@ -10,10 +10,12 @@ import { StructuredLogger } from '../shared/observability/logger.js';
 import { metrics } from '../shared/observability/metrics.js';
 import { CostTracker, type TokenUsage } from '../shared/cost/tracker.js';
 import { FailureFingerprinter } from '../shared/patterns/fingerprinter.js';
-import { AttemptStore } from '../shared/patterns/attempt-store.js';
+import { AttemptStore, MAX_ATTEMPTS } from '../shared/patterns/attempt-store.js';
 import { PatternMatcher } from '../shared/patterns/matcher.js';
 import { PatternExtractor } from '../shared/patterns/extractor.js';
 import { PatternLearner } from '../shared/patterns/learner.js';
+import { JSONLLogger, type RunMetrics } from './telemetry/jsonl-logger.js';
+import { generatePRBody } from './templates/pr-template.js';
 
 export interface GitHubIssueLike {
   number: number;
@@ -48,6 +50,22 @@ interface ExecutionOutcome {
   cost: number;
 }
 
+export interface SafetyConfig {
+  maxDiffLines: number;
+  maxFiles: number;
+  budgetLimit: number;
+  pathFilters?: { include: string[]; exclude: string[] };
+  secretPatterns?: RegExp[];
+}
+
+export interface RunContext {
+  totalCost: number;
+  patternsUsed: number;
+  zeroCostFixes: number;
+  cooldowns: number;
+  fingerprints: string[];
+}
+
 export interface ProcessOptions {
   githubAPI: GitHubAdapter;
   mockAI?: boolean;
@@ -60,6 +78,9 @@ export interface ProcessOptions {
     routing: ExecutionRouting,
     helpers: { costTracker: CostTracker }
   ) => Promise<ExecutionOutcome>;
+  repoSlug?: string;
+  safety?: Partial<SafetyConfig>;
+  runContext?: RunContext;
 }
 
 export interface ProcessIssueResult {
@@ -75,6 +96,40 @@ export interface ProcessIssueResult {
   skipped?: boolean;
   reason?: string;
 }
+
+const parseNumber = (value: string | undefined, fallback: number): number => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+};
+
+const buildSafetyConfig = (overrides: Partial<SafetyConfig> = {}): SafetyConfig => {
+  const defaultConfig: SafetyConfig = {
+    maxDiffLines: parseNumber(process.env.MAX_DIFF_LINES, 500),
+    maxFiles: parseNumber(process.env.MAX_FILES, 10),
+    budgetLimit: parseNumber(process.env.MAX_RUN_COST, 1),
+    secretPatterns: [
+      /sk_(?:live|test)_[0-9a-z]{16,}/i,
+      /api[_-]?key\s*[:=]/i,
+      /secret\s*[:=]/i,
+      /-----BEGIN [A-Z ]*PRIVATE KEY-----/
+    ]
+  };
+
+  return {
+    ...defaultConfig,
+    ...overrides,
+    secretPatterns: overrides.secretPatterns ?? defaultConfig.secretPatterns
+  };
+};
+
+const createRunContext = (existing?: RunContext): RunContext =>
+  existing ?? {
+    totalCost: 0,
+    patternsUsed: 0,
+    zeroCostFixes: 0,
+    cooldowns: 0,
+    fingerprints: []
+  };
 
 const TOKEN_PROFILES: Record<number, TokenUsage[]> = {
   1: [
@@ -113,23 +168,52 @@ export async function processIssue(
     costTracker = new CostTracker(),
     delayFn = defaultDelay,
     maxCreatePRAttempts = DEFAULT_MAX_PR_ATTEMPTS,
-    executeTier
+    executeTier,
+    repoSlug = 'littlebearapps/homeostat',
+    safety: safetyOverrides = {},
+    runContext
   } = options;
 
+  const safety = buildSafetyConfig(safetyOverrides);
+  const context = createRunContext(runContext);
   const delayHistory: number[] = [];
   const logger = new StructuredLogger({ issueNumber, stage: 'orchestrator' });
   logger.info('Processing issue');
+  const startTime = Date.now();
+
+  const logMetrics = (partial: Partial<RunMetrics>) => {
+    const base: RunMetrics = {
+      timestamp: new Date().toISOString(),
+      repo: repoSlug,
+      fingerprintsProcessed: [],
+      prsCreated: 0,
+      prsUpdated: 0,
+      cooldowns: 0,
+      cost: 0,
+      tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      latency: Date.now() - startTime,
+      errors: [],
+      patternsUsed: 0,
+      zeroCostFixes: 0
+    };
+
+    const tokens = partial.tokens ? { ...base.tokens, ...partial.tokens } : base.tokens;
+
+    JSONLLogger.logRunMetrics({ ...base, ...partial, tokens });
+  };
 
   const issue = githubAPI.getIssue(issueNumber);
   if (!issue) {
     const reason = `Issue #${issueNumber} not found`;
     logger.error('Issue lookup failed', undefined, { reason });
+    logMetrics({ errors: [reason] });
     return { rejected: true, reason };
   }
 
   const labels = issue.labels ?? [];
   if (!labels.some((label) => label?.name === 'robot')) {
     logger.info('Skipping issue without robot label');
+    logMetrics({ errors: ['missing robot label'] });
     return { skipped: true, reason: 'missing robot label' };
   }
 
@@ -146,6 +230,7 @@ export async function processIssue(
         `⚠️ ${reason}\n\nPlease ensure issue follows Logger format.`
       )
     );
+    logMetrics({ errors: [reason] });
     return { rejected: true, reason };
   }
 
@@ -157,11 +242,18 @@ export async function processIssue(
   });
 
   const attemptKey = parsed.fingerprint || fingerprint.id;
+  context.fingerprints.push(fingerprint.id);
 
   const canAttempt = await attemptStore.canAttempt(attemptKey);
   if (!canAttempt) {
     const reason = 'cooldown_active';
     logger.info('Skipping issue due to active cooldown', { fingerprint: attemptKey });
+    context.cooldowns += 1;
+    logMetrics({
+      fingerprintsProcessed: [fingerprint.id],
+      cooldowns: 1,
+      errors: [reason]
+    });
     return { skipped: true, reason };
   }
 
@@ -174,6 +266,7 @@ export async function processIssue(
   let pendingPatternExtraction:
     | { fingerprint: typeof fingerprint; patch: string; description: string }
     | null = null;
+  let patternApplied = false;
 
   if (patternMatch) {
     logger.info('Applying learned pattern', {
@@ -191,6 +284,8 @@ export async function processIssue(
     };
 
     logger.setContext({ tier: 0 });
+    patternApplied = true;
+    tierUsed = 0;
   } else {
     routing = selectModel({ stack: parsed.stackTrace });
     logger.setContext({ tier: routing.tier });
@@ -215,10 +310,88 @@ export async function processIssue(
     }
   }
 
-  const fixGenerated = execution.success && Boolean(execution.patch);
-  const testsPassed = mockTestFailure ? false : execution.success;
+  if (patternApplied) {
+    context.patternsUsed += 1;
+    if (execution.cost === 0) {
+      context.zeroCostFixes += 1;
+    }
+  }
 
-  await attemptStore.recordAttempt(attemptKey, testsPassed);
+  const patchStats = execution.patch ? analyzePatch(execution.patch) : createEmptyPatchStats();
+  const newTotalCost = context.totalCost + execution.cost;
+  const guardrailViolations: string[] = [];
+
+  if (execution.patch && patchStats.diffLines > safety.maxDiffLines) {
+    guardrailViolations.push('diff_limit_exceeded');
+  }
+
+  if (execution.patch && patchStats.fileCount > safety.maxFiles) {
+    guardrailViolations.push('file_limit_exceeded');
+  }
+
+  if (
+    execution.patch &&
+    safety.pathFilters &&
+    patchStats.files.length &&
+    !passesPathFilters(patchStats.files, safety.pathFilters)
+  ) {
+    guardrailViolations.push('path_filter_violation');
+  }
+
+  if (
+    execution.patch &&
+    safety.secretPatterns &&
+    containsSecrets(execution.patch, safety.secretPatterns)
+  ) {
+    guardrailViolations.push('secret_detected');
+  }
+
+  if (newTotalCost > safety.budgetLimit) {
+    guardrailViolations.push('budget_exceeded');
+  }
+
+  let attemptState: Awaited<ReturnType<AttemptStore['recordAttempt']>> | null = null;
+
+  if (guardrailViolations.length) {
+    attemptState = await attemptStore.recordAttempt(attemptKey, false);
+    context.totalCost = newTotalCost;
+    metrics.recordFix(tierUsed, false, execution.cost);
+    const reason = guardrailViolations[0];
+
+    await maybePromise(
+      githubAPI.addComment(
+        issueNumber,
+        `⚠️ Guardrail violation detected (${reason}). Manual review required.`
+      )
+    );
+
+    logMetrics({
+      fingerprintsProcessed: [fingerprint.id],
+      cost: execution.cost,
+      tokens: aggregateTokenUsage(execution.tokens),
+      errors: guardrailViolations,
+      patternsUsed: patternApplied ? 1 : 0,
+      zeroCostFixes: patternApplied && execution.cost === 0 ? 1 : 0
+    });
+
+    return {
+      tier: tierUsed,
+      model: execution.model,
+      success: false,
+      fixGenerated: Boolean(execution.patch),
+      testsPassed: false,
+      delayHistory,
+      rejected: true,
+      reason
+    };
+  }
+
+  context.totalCost = newTotalCost;
+
+  const fixGenerated = execution.success && Boolean(execution.patch);
+  let testsPassed = !mockTestFailure && execution.success;
+
+  attemptState = await attemptStore.recordAttempt(attemptKey, testsPassed);
 
   if (patternMatch) {
     const learner = new PatternLearner();
@@ -232,17 +405,25 @@ export async function processIssue(
     }
   }
 
-  const cost = execution.cost;
-  metrics.recordFix(tierUsed, testsPassed, cost);
-
   if (!testsPassed) {
     logger.warn('Tests failed after applying fix');
+    metrics.recordFix(tierUsed, false, execution.cost);
     await maybePromise(
       githubAPI.addComment(
         issueNumber,
         '⚠️ Tests failed after applying fix. Manual review required.'
       )
     );
+
+    logMetrics({
+      fingerprintsProcessed: [fingerprint.id],
+      cost: execution.cost,
+      tokens: aggregateTokenUsage(execution.tokens),
+      errors: ['tests_failed'],
+      patternsUsed: patternApplied ? 1 : 0,
+      zeroCostFixes: patternApplied && execution.cost === 0 ? 1 : 0
+    });
+
     return {
       tier: tierUsed,
       model: execution.model,
@@ -254,11 +435,43 @@ export async function processIssue(
     };
   }
 
+  metrics.recordFix(tierUsed, true, execution.cost);
+
+  const tokenUsage = aggregateTokenUsage(execution.tokens);
+  const nextBackoff = attemptState?.cooldownUntil
+    ? new Date(attemptState.cooldownUntil)
+    : new Date();
+
+  const prBody = generatePRBody({
+    fingerprint,
+    error: {
+      type: parsed.errorType || 'UnknownError',
+      message: parsed.errorMessage || parsed.message || '',
+      filePath: fingerprint.filePath,
+      stack: parsed.stackTrace || ''
+    },
+    attemptState: attemptState!,
+    patchSummary: summarizePatch(execution.patch ?? '', patchStats),
+    sanitizedStack: parsed.stackTrace || '',
+    breadcrumbs: parsed.breadcrumbs ?? [],
+    testResults: { passed: 1, total: 1 },
+    tierUsed,
+    nextBackoff,
+    fixCost: execution.cost,
+    tokenUsage,
+    fixSource: patternApplied ? 'pattern' : 'ai',
+    diffLines: patchStats.diffLines,
+    fileCount: patchStats.fileCount,
+    maxDiffLines: safety.maxDiffLines,
+    maxFiles: safety.maxFiles,
+    patternId: patternMatch?.pattern.id,
+    confidence: patternMatch?.confidence,
+    patternStrategy: patternMatch?.strategy
+  });
+
   const prInput = {
     title: `fix: automated fix for issue #${issueNumber}`,
-    body: patternMatch
-      ? `Fixes #${issueNumber}\n\nAutomated fix generated by Homeostat (Pattern replay).`
-      : `Fixes #${issueNumber}\n\nAutomated fix generated by Homeostat (Tier ${tierUsed}).`,
+    body: prBody,
     base: 'main',
     head: `fix/issue-${issueNumber}`
   };
@@ -281,6 +494,15 @@ export async function processIssue(
 
   logger.info('Issue processed successfully', { prNumber: pr.number, retries });
 
+  logMetrics({
+    fingerprintsProcessed: [fingerprint.id],
+    prsCreated: 1,
+    cost: execution.cost,
+    tokens: tokenUsage,
+    patternsUsed: patternApplied ? 1 : 0,
+    zeroCostFixes: patternApplied && execution.cost === 0 ? 1 : 0
+  });
+
   return {
     tier: tierUsed,
     model: execution.model,
@@ -292,7 +514,6 @@ export async function processIssue(
     delayHistory
   };
 }
-
 async function createPullRequestWithRetry({
   githubAPI,
   prInput,
@@ -343,6 +564,135 @@ function determineBackoff(error: unknown, attempt: number) {
     return base * 2 ** (attempt - 1);
   }
   return 200 * attempt;
+}
+
+interface PatchStats {
+  diffLines: number;
+  fileCount: number;
+  files: string[];
+  additions: number;
+  deletions: number;
+}
+
+function createEmptyPatchStats(): PatchStats {
+  return { diffLines: 0, fileCount: 0, files: [], additions: 0, deletions: 0 };
+}
+
+function analyzePatch(patch: string): PatchStats {
+  const stats = createEmptyPatchStats();
+  const lines = patch.split('\n');
+
+  for (const line of lines) {
+    if (line.startsWith('diff --git')) {
+      stats.fileCount += 1;
+      const match = line.match(/^diff --git a\/(.+) b\/(.+)$/);
+      if (match) {
+        stats.files.push(match[2]);
+      }
+      continue;
+    }
+
+    if (line.startsWith('+++') || line.startsWith('---')) {
+      continue;
+    }
+
+    if (line.startsWith('+')) {
+      stats.diffLines += 1;
+      stats.additions += 1;
+    } else if (line.startsWith('-')) {
+      stats.diffLines += 1;
+      stats.deletions += 1;
+    }
+  }
+
+  return stats;
+}
+
+function normalizePathSegment(value: string): string {
+  return value.replace(/^[./]+/, '');
+}
+
+function matchesPathPattern(file: string, pattern: string): boolean {
+  if (!pattern || pattern === '*') {
+    return true;
+  }
+
+  if (pattern.endsWith('/')) {
+    const normalizedPattern = pattern.slice(0, -1);
+    return file.startsWith(normalizedPattern);
+  }
+
+  return file === pattern || file.startsWith(`${pattern}/`);
+}
+
+function passesPathFilters(
+  files: string[],
+  filters: { include: string[]; exclude: string[] }
+): boolean {
+  if (!files.length) {
+    return false;
+  }
+
+  const includes = filters.include?.length ? filters.include : [''];
+  const excludes = filters.exclude ?? [];
+
+  const normalizedFiles = files.map((file) => normalizePathSegment(file));
+  const normalizedIncludes = includes.map((pattern) => normalizePathSegment(pattern));
+  const normalizedExcludes = excludes.map((pattern) => normalizePathSegment(pattern));
+
+  const hasIncluded = normalizedFiles.some((file) =>
+    normalizedIncludes.some((pattern) => matchesPathPattern(file, pattern))
+  );
+
+  if (!hasIncluded) {
+    return false;
+  }
+
+  const hasExcluded = normalizedFiles.some((file) =>
+    normalizedExcludes.some((pattern) => matchesPathPattern(file, pattern))
+  );
+
+  return !hasExcluded;
+}
+
+function containsSecrets(patch: string, patterns: RegExp[]): boolean {
+  const lines = patch.split('\n');
+  return lines.some((line) => patterns.some((pattern) => pattern.test(line)));
+}
+
+function aggregateTokenUsage(tokens: TokenUsage[]): {
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+} {
+  return tokens.reduce(
+    (acc, entry) => ({
+      input: acc.input + (entry.inputTokens ?? 0),
+      output: acc.output + (entry.outputTokens ?? 0),
+      cacheRead: acc.cacheRead,
+      cacheWrite: acc.cacheWrite
+    }),
+    { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }
+  );
+}
+
+function summarizePatch(patch: string, stats?: PatchStats): string {
+  if (!patch.trim()) {
+    return '_Patch summary unavailable_';
+  }
+
+  const snapshot = stats ?? analyzePatch(patch);
+  const fileLines = snapshot.files.slice(0, 5).map((file) => `- ${file}`);
+  if (snapshot.files.length > 5) {
+    fileLines.push(`- … ${snapshot.files.length - 5} more file(s)`);
+  }
+
+  return [
+    `Files touched: ${snapshot.fileCount}`,
+    `Additions: ${snapshot.additions}, Deletions: ${snapshot.deletions}`,
+    ...fileLines
+  ].join('\n');
 }
 
 async function runMockExecution(

@@ -23,8 +23,11 @@ export class PatternExtractor {
   private readonly env: string;
 
   constructor(options: PatternExtractorOptions = {}) {
+    const envPath = process.env.HOMEOSTAT_PATTERN_LIBRARY_PATH;
     this.libraryPath = options.libraryPath
       ? path.resolve(options.libraryPath)
+      : envPath
+      ? path.resolve(envPath)
       : path.resolve(DEFAULT_LIBRARY_PATH);
     this.env = options.env ?? process.env.HOMEOSTAT_ENV ?? 'dev';
   }

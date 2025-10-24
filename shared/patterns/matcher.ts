@@ -46,10 +46,11 @@ export class PatternMatcher {
   }
 
   static async fromFile(
-    filePath: string = DEFAULT_LIBRARY_PATH,
+    filePath?: string,
     options: PatternMatcherOptions = {}
   ): Promise<PatternMatcher> {
-    const resolved = path.resolve(filePath);
+    const basePath = filePath ?? process.env.HOMEOSTAT_PATTERN_LIBRARY_PATH ?? DEFAULT_LIBRARY_PATH;
+    const resolved = path.resolve(basePath);
     try {
       const raw = await fs.readFile(resolved, 'utf8');
       const parsed: PatternLibrary = JSON.parse(raw);
