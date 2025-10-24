@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 import { sanitizeCode } from '../privacy/sanitizer.js';
 
 export interface LogContext {
@@ -58,7 +58,7 @@ export class StructuredLogger {
 
   constructor(context: Partial<LogContext> = {}) {
     this.context = {
-      runId: context.runId ?? uuidv4(),
+      runId: context.runId ?? randomUUID(),
       ...context
     } as LogContext;
   }

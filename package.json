@@ -12,6 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "test:coverage:critical": "vitest run --coverage --include='shared/privacy/**,homeostat/config/**,homeostat/routing/**,homeostat/execution/**'",
     "test:security": "vitest run tests/security",
+    "test:e2e": "vitest run tests/e2e",
     "bench": "tsx scripts/run-benchmark.ts",
     "cost:check": "tsx scripts/cost-estimator.ts",
     "slo:check": "tsx scripts/check-slos.ts",
@@ -42,7 +43,6 @@
     "vitest": "^1.0.0"
   },
   "dependencies": {
-    "openai": "^4.0.0",
-    "uuid": "^9.0.1"
+    "openai": "^4.0.0"
   }
 }

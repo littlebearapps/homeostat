@@ -16,6 +16,7 @@ npm test              # Run the entire suite
 npm run test:unit     # Execute only unit tests in tests/unit
 npm run test:property # Execute property-based fuzz tests
 npm run test:integration # Execute integration flows
+npm run test:e2e        # Execute end-to-end orchestrator scenarios
 npm run test:security   # Execute security regression suite
 npm run test:coverage       # Collect coverage for the entire suite
 npm run test:coverage:critical # Enforce ≥95% coverage on critical modules

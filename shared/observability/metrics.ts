@@ -34,54 +34,54 @@ function createEmptyMetrics(): Metrics {
 }
 
 export class MetricsCollector {
-  private readonly metrics: Metrics;
+  private readonly state: Metrics;
 
   constructor(initialMetrics: Metrics = createEmptyMetrics()) {
-    this.metrics = initialMetrics;
+    this.state = initialMetrics;
   }
 
   recordFix(tier: number, success: boolean, cost: number) {
     const tierKey = `tier${tier}` as const;
 
-    this.metrics.fixes.total += 1;
-    if (tierKey in this.metrics.fixes.byTier) {
-      this.metrics.fixes.byTier[tierKey] += 1;
+    this.state.fixes.total += 1;
+    if (tierKey in this.state.fixes.byTier) {
+      this.state.fixes.byTier[tierKey] += 1;
     }
 
     if (success) {
-      this.metrics.fixes.successful += 1;
+      this.state.fixes.successful += 1;
     } else {
-      this.metrics.fixes.failed += 1;
+      this.state.fixes.failed += 1;
     }
 
-    this.metrics.cost.total += cost;
-    if (tierKey in this.metrics.cost.byTier) {
-      this.metrics.cost.byTier[tierKey] += cost;
+    this.state.cost.total += cost;
+    if (tierKey in this.state.cost.byTier) {
+      this.state.cost.byTier[tierKey] += cost;
     }
   }
 
   recordRetry(escalated = false) {
-    this.metrics.retries.total += 1;
+    this.state.retries.total += 1;
     if (escalated) {
-      this.metrics.retries.escalations += 1;
+      this.state.retries.escalations += 1;
     }
   }
 
   recordRedaction(type: string) {
-    this.metrics.sanitization.totalRedactions += 1;
-    this.metrics.sanitization.byType[type] =
-      (this.metrics.sanitization.byType[type] ?? 0) + 1;
+    this.state.sanitization.totalRedactions += 1;
+    this.state.sanitization.byType[type] =
+      (this.state.sanitization.byType[type] ?? 0) + 1;
   }
 
   getSuccessRate(): number {
-    if (this.metrics.fixes.total === 0) {
+    if (this.state.fixes.total === 0) {
       return 0;
     }
-    return this.metrics.fixes.successful / this.metrics.fixes.total;
+    return this.state.fixes.successful / this.state.fixes.total;
   }
 
   getSnapshot(): Metrics {
-    return JSON.parse(JSON.stringify(this.metrics)) as Metrics;
+    return JSON.parse(JSON.stringify(this.state)) as Metrics;
   }
 
   get metrics(): Metrics {
@@ -90,16 +90,16 @@ export class MetricsCollector {
 
   reset() {
     const fresh = createEmptyMetrics();
-    Object.assign(this.metrics.fixes.byTier, fresh.fixes.byTier);
-    this.metrics.fixes.total = 0;
-    this.metrics.fixes.successful = 0;
-    this.metrics.fixes.failed = 0;
-    this.metrics.retries.total = 0;
-    this.metrics.retries.escalations = 0;
-    this.metrics.sanitization.totalRedactions = 0;
-    this.metrics.sanitization.byType = {};
-    this.metrics.cost.total = 0;
-    Object.assign(this.metrics.cost.byTier, fresh.cost.byTier);
+    Object.assign(this.state.fixes.byTier, fresh.fixes.byTier);
+    this.state.fixes.total = 0;
+    this.state.fixes.successful = 0;
+    this.state.fixes.failed = 0;
+    this.state.retries.total = 0;
+    this.state.retries.escalations = 0;
+    this.state.sanitization.totalRedactions = 0;
+    this.state.sanitization.byType = {};
+    this.state.cost.total = 0;
+    Object.assign(this.state.cost.byTier, fresh.cost.byTier);
   }
 
   exportJSON(): string {
