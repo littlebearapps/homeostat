@@ -1,21 +1,21 @@
-# Logger Integration
+# CloakPipe Integration
 
-**Integration Contract**: This document defines the contract between [Logger](https://github.com/littlebearapps/logger) (error capture) and Homeostat (automated fixing).
+**Integration Contract**: This document defines the contract between [CloakPipe](https://github.com/littlebearapps/cloakpipe) (error capture) and Homeostat (automated fixing).
 
 ## Overview
 
-Homeostat receives error reports from the Logger via GitHub issues. The Logger captures errors in Chrome extensions, sanitizes all PII, and creates GitHub issues that trigger Homeostat's automated fixing workflow.
+Homeostat receives error reports from CloakPipe via GitHub issues. CloakPipe captures errors in Chrome extensions, sanitizes all PII, and creates GitHub issues that trigger Homeostat's automated fixing workflow.
 
 **Repositories**:
-- **Logger**: https://github.com/littlebearapps/logger
+- **CloakPipe**: https://github.com/littlebearapps/cloakpipe
 - **Homeostat**: https://github.com/littlebearapps/homeostat (this repo)
 
 ## Workflow
 
 ```
 ┌──────────┐         ┌──────────────┐         ┌───────────┐
-│ Extension│─ error ─>│    Logger    │─ issue ─>│ Homeostat │
-│ (Chrome) │         │ (littlebearapps/logger)│ (this repo)│
+│ Extension│─ error ─>│  CloakPipe   │─ issue ─>│ Homeostat │
+│ (Chrome) │         │ (littlebearapps/cloakpipe)│(this repo)│
 └──────────┘         └──────────────┘         └───────────┘
                             │                        │
                             ▼                        ▼
@@ -52,7 +52,7 @@ jobs:
 
 ## Expected Issue Format
 
-The Logger creates issues in this exact format:
+CloakPipe creates issues in this exact format:
 
 ### Issue Title
 
@@ -251,7 +251,7 @@ function parseBreadcrumbs(section) {
 ### Example: Complete Parsing
 
 ```javascript
-async function parseLoggerIssue(issue) {
+async function parseCloakPipeIssue(issue) {
   // Parse title
   const titleData = parseIssueTitle(issue.title);
 
@@ -301,9 +301,9 @@ async function parseLoggerIssue(issue) {
 
 ### Data Sanitization
 
-**All data has been sanitized by Logger before reaching Homeostat.**
+**All data has been sanitized by CloakPipe before reaching Homeostat.**
 
-The Logger removes all PII using 18+ sanitization patterns:
+CloakPipe removes all PII using 18+ sanitization patterns:
 - ✅ User file paths → generic paths (e.g., `/Users/<REDACTED>`)
 - ✅ Extension IDs → placeholder IDs (e.g., `chrome-extension://<EXT_ID>`)
 - ✅ API keys → redacted (e.g., `<OPENAI_KEY_REDACTED>`)
@@ -348,9 +348,9 @@ If Homeostat cannot parse the issue:
    ```
    ⚠️ Homeostat could not parse this issue.
 
-   Expected format: [docs/LOGGER-INTEGRATION.md](https://github.com/littlebearapps/homeostat/blob/main/docs/LOGGER-INTEGRATION.md)
+   Expected format: [docs/CLOAKPIPE-INTEGRATION.md](https://github.com/littlebearapps/homeostat/blob/main/docs/CLOAKPIPE-INTEGRATION.md)
 
-   Please verify the issue was created by Logger, or manually fix the format.
+   Please verify the issue was created by CloakPipe, or manually fix the format.
    ```
 3. **Do NOT attempt fix** - wait for human intervention
 
@@ -376,10 +376,10 @@ If fingerprint matches existing issue:
 
 ### Integration Tests
 
-Homeostat should include tests that verify parsing of Logger's format:
+Homeostat should include tests that verify parsing of CloakPipe's format:
 
 ```javascript
-describe('Logger Integration', () => {
+describe('CloakPipe Integration', () => {
   it('should parse valid logger issue', () => {
     const mockIssue = {
       title: '[NoteBridge] TypeError: Cannot read property sync',
@@ -405,7 +405,7 @@ Error at sync.js:42
       html_url: 'https://github.com/...'
     };
 
-    const parsed = parseLoggerIssue(mockIssue);
+    const parsed = parseCloakPipeIssue(mockIssue);
 
     expect(parsed.extensionName).toBe('NoteBridge');
     expect(parsed.errorType).toBe('TypeError');
@@ -420,7 +420,7 @@ Error at sync.js:42
       labels: [{ name: 'robot' }]
     };
 
-    expect(() => parseLoggerIssue(invalidIssue)).toThrow('Invalid issue title format');
+    expect(() => parseCloakPipeIssue(invalidIssue)).toThrow('Invalid issue title format');
   });
 });
 ```
@@ -437,7 +437,7 @@ This integration contract may evolve over time. Changes will be versioned:
 - **v1.0.0** (2025-10-23): Initial integration contract
 
 **Breaking Changes**:
-- If Logger changes issue format, this document MUST be updated
+- If CloakPipe changes issue format, this document MUST be updated
 - Homeostat parsing logic MUST match documented format
 - Both repositories should coordinate on format changes
 
@@ -445,9 +445,9 @@ This integration contract may evolve over time. Changes will be versioned:
 
 ## References
 
-- **Logger Repository**: https://github.com/littlebearapps/logger
-- **Logger Integration Docs**: See logger's `README.md` section "Integration with Homeostat"
-- **Logger CLAUDE.md**: See "Integration with Homeostat" section
+- **CloakPipe Repository**: https://github.com/littlebearapps/cloakpipe
+- **CloakPipe Integration Docs**: See cloakpipe's `README.md` section "Integration with Homeostat"
+- **CloakPipe CLAUDE.md**: See "Integration with Homeostat" section
 - **Homeostat Implementation**: See `docs/IMPLEMENTATION-ROADMAP.md` Phase 3
 
 ---
@@ -455,6 +455,6 @@ This integration contract may evolve over time. Changes will be versioned:
 ## Contact
 
 For integration issues or format changes:
-- Open issue in respective repository (logger or homeostat)
+- Open issue in respective repository (cloakpipe or homeostat)
 - Tag with `integration` label
 - Coordinate changes to maintain compatibility

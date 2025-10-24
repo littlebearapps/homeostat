@@ -17,11 +17,11 @@
   cd ~/claude-code-tools/lba/apps/chrome-extensions/convert-my-file/main/
   ```
 
-- [ ] Verify Logger integration is complete
+- [ ] Verify CloakPipe integration is complete
   ```bash
-  # Check if Logger Phase 3 is complete
-  # See: ~/claude-code-tools/lba/tools/logger/main/CLAUDE.md
-  grep -i "phase 3" ~/claude-code-tools/lba/tools/logger/main/CLAUDE.md
+  # Check if CloakPipe Phase 3 is complete
+  # See: ~/claude-code-tools/lba/tools/cloakpipe/main/CLAUDE.md
+  grep -i "phase 3" ~/claude-code-tools/lba/tools/cloakpipe/main/CLAUDE.md
   ```
 
 - [ ] Confirm test suite exists and passes
@@ -184,7 +184,7 @@
 
 ### Task 2.6: First 10 Fixes Monitoring 📊
 
-**Duration**: 1-2 weeks (depending on error rate from Logger)
+**Duration**: 1-2 weeks (depending on error rate from CloakPipe)
 
 - [ ] **Fix #1: Deep Analysis**
   - Review PR thoroughly (code quality, test coverage)
