@@ -1,0 +1,31 @@
+version: 1
+repositories:
+  - slug: littlebearapps/convert-my-file
+    branch: main
+    max_prs_per_run: 2
+    labels: [homeostat-fix, convert-my-file]
+    path_filters:
+      include: [src/, content/, background/]
+      exclude: [tests/, docs/]
+    test_command: npm test
+    confidence_threshold: 0.8
+
+  - slug: littlebearapps/notebridge
+    branch: main
+    max_prs_per_run: 2
+    labels: [homeostat-fix, notebridge]
+    path_filters:
+      include: [src/, content/, background/]
+      exclude: [tests/, docs/]
+    test_command: npm test
+    confidence_threshold: 0.8
+
+  - slug: littlebearapps/palette-kit
+    branch: main
+    max_prs_per_run: 2
+    labels: [homeostat-fix, palette-kit]
+    path_filters:
+      include: [src/, content/, background/]
+      exclude: [tests/, docs/]
+    test_command: npm test
+    confidence_threshold: 0.8

@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "patterns": [],
+  "metadata": {
+    "lastUpdated": "2025-10-24T00:00:00Z",
+    "totalPatterns": 0,
+    "note": "Pattern library starts empty. In PRODUCTION mode, patterns are extracted from successful PRs and learned from results."
+  }
+}

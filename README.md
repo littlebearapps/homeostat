@@ -12,6 +12,8 @@ Homeostat is an automated error-fixing system that uses AI to detect, analyze, a
 - 📊 **Multi-Tier Strategy**: 70% DeepSeek (cheap) + 25% hybrid + 5% GPT-5 (complex)
 - 🔄 **Smart Retry Logic**: 2-attempt strategy with deterministic failure detection
 - ✅ **Test-Gated**: Only merges fixes that pass test suite
+- 🧩 **Multi-Repository Automation**: Single Homeostat deployment orchestrates fixes across all Little Bear Apps extensions
+- 🩹 **Self-Healing Pattern Library**: Production feature flags capture successful patches and replay zero-cost fixes with >80% confidence
 
 ## Integration with Logger
 
