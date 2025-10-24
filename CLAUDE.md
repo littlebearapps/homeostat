@@ -12,7 +12,7 @@ Homeostat is an agentic fix pipeline that restores your repo to a steady, health
 - `.claude-context` - Session state
 - `AGENTS.md` - AI agent coordination
 - `README.md` - Project documentation
-- `docs/LOGGER-INTEGRATION.md` - **Integration contract with logger (READ FIRST)**
+- `docs/CLOAKPIPE-INTEGRATION.md` - **Integration contract with CloakPipe (READ FIRST)**
 - `docs/HIGH-PRIORITY-ENHANCEMENTS-PLAN.md` - **1-day implementation plan for enhancements**
 - `docs/REMAINING-TASKS.md` - **Phase 2-3 deployment checklist**
 - `docs/FUTURE-ENHANCEMENTS.md` - Deferred enhancements (post-production)
@@ -20,9 +20,9 @@ Homeostat is an agentic fix pipeline that restores your repo to a steady, health
 - `docs/DEEPSEEK-MULTI-AI-ARCHITECTURE.md` - System architecture
 - `docs/PRIVACY-SECURITY-GUIDE.md` - Security framework
 
-## Integration with Logger
+## Integration with CloakPipe
 
-**CRITICAL**: Homeostat receives errors from the [Logger](https://github.com/littlebearapps/logger) via GitHub issues.
+**CRITICAL**: Homeostat receives errors from [CloakPipe](https://github.com/littlebearapps/cloakpipe) via GitHub issues.
 
 ### Trigger Mechanism
 
@@ -42,7 +42,7 @@ jobs:
 
 ### Expected Issue Format
 
-**See [docs/LOGGER-INTEGRATION.md](docs/LOGGER-INTEGRATION.md) for the complete integration contract.**
+**See [docs/CLOAKPIPE-INTEGRATION.md](docs/CLOAKPIPE-INTEGRATION.md) for the complete integration contract.**
 
 **Quick Summary**:
 - **Title**: `[ExtensionName] ErrorType: Error message`

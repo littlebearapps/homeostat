@@ -13,19 +13,19 @@ Homeostat is an automated error-fixing system that uses AI to detect, analyze, a
 - 🔄 **Smart Retry Logic**: 2-attempt strategy with deterministic failure detection
 - ✅ **Test-Gated**: Only merges fixes that pass test suite
 
-## Integration with Logger
+## Integration with CloakPipe
 
-Homeostat receives errors from the [Logger](https://github.com/littlebearapps/logger) via GitHub issues.
+Homeostat receives errors from [CloakPipe](https://github.com/littlebearapps/cloakpipe) via GitHub issues.
 
 ### How It Works
 
-1. **Logger** captures error in Chrome extension → sanitizes PII → creates GitHub issue with `robot` label
+1. **CloakPipe** captures error in Chrome extension → sanitizes PII → creates GitHub issue with `robot` label
 2. **Homeostat** (triggered by `robot` label) → analyzes complexity → selects AI tier → attempts fix
 3. **Validation** → runs test suite → creates PR if tests pass → comments on issue with results
 
 ### Expected Issue Format
 
-The logger creates issues in a specific format that Homeostat parses. **See [docs/LOGGER-INTEGRATION.md](docs/LOGGER-INTEGRATION.md) for the complete integration contract**, including:
+CloakPipe creates issues in a specific format that Homeostat parses. **See [docs/CLOAKPIPE-INTEGRATION.md](docs/CLOAKPIPE-INTEGRATION.md) for the complete integration contract**, including:
 
 - Exact issue title and body format
 - Required fields (stack trace, error type, fingerprint, breadcrumbs)
@@ -38,7 +38,7 @@ The logger creates issues in a specific format that Homeostat parses. **See [doc
 **Required Labels**: `robot` (triggers Homeostat), extension name (e.g., `notebridge`)
 
 **Critical Fields Homeostat Uses**:
-- **Stack trace** - Error location and call chain (PII sanitized by logger)
+- **Stack trace** - Error location and call chain (PII sanitized by CloakPipe)
 - **Breadcrumbs** - User actions leading to error (max 50)
 - **Error fingerprint** - Hash for deduplication (same error = same fingerprint)
 - **Extension metadata** - Version, error type, timestamp
@@ -51,7 +51,7 @@ The logger creates issues in a specific format that Homeostat parses. **See [doc
 
 ## Documentation
 
-- [Logger Integration Contract](docs/LOGGER-INTEGRATION.md) - **START HERE** for understanding input format
+- [CloakPipe Integration Contract](docs/CLOAKPIPE-INTEGRATION.md) - **START HERE** for understanding input format
 - [Implementation Roadmap](docs/IMPLEMENTATION-ROADMAP.md) - Complete Phase 0-5 plan
 - [DeepSeek Multi-AI Architecture](docs/DEEPSEEK-MULTI-AI-ARCHITECTURE.md) - System design
 - [Privacy & Security Guide](docs/PRIVACY-SECURITY-GUIDE.md) - Security framework
@@ -83,7 +83,7 @@ jobs:
 ## Usage
 
 1. Error occurs in extension (e.g., NoteBridge)
-2. Logger creates GitHub issue with label `robot`
+2. CloakPipe creates GitHub issue with label `robot`
 3. Homeostat analyzes complexity and selects AI tier
 4. Attempts fix (with retry logic)
 5. Runs test suite to validate
