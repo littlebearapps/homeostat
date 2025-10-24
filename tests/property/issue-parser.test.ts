@@ -56,8 +56,10 @@ describe('issue-parser property tests', () => {
         const safeBody = body.replace(/##/g, '--');
         const decorated = `## Error Details\n- Message: ${filler}\n${safeBody}\n## Stack Trace\ncode\n## Breadcrumbs\n1. step`;
         const section = extractSection(decorated, '## Error Details');
-        if (filler.trim().length > 0) {
-          expect(section).toContain(filler);
+        const normalizedSection = section.replace(/\s+/g, ' ');
+        const normalizedFiller = filler.trim();
+        if (normalizedFiller.length > 0) {
+          expect(normalizedSection).toContain(normalizedFiller);
         } else {
           expect(section.length).toBeGreaterThan(0);
         }

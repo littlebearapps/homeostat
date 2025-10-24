@@ -5,7 +5,7 @@ export default defineConfig({
     include: ['tests/**/*.test.{js,ts}'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'lcov'],
+      reporter: ['text', 'json', 'json-summary', 'lcov'],
       include: ['shared/privacy/**', 'homeostat/**'],
       all: true,
       lines: 90,

@@ -1,19 +1,19 @@
 {
   "totalIssues": 100,
-  "medianLatency": 57.40016399999968,
-  "p95Latency": 96.38859999999977,
+  "medianLatency": 47.73404300000004,
+  "p95Latency": 95.61665099999937,
   "tokenUsage": {
-    "tier1DeepSeek": 76800,
-    "tier2DeepSeek": 54000,
-    "tier2GPT5": 10800,
-    "tier3GPT5": 49500,
-    "total": 191100
+    "tier1DeepSeek": 91200,
+    "tier2DeepSeek": 38000,
+    "tier2GPT5": 7600,
+    "tier3GPT5": 27500,
+    "total": 164300
   },
   "cost": {
-    "tier1": 0.04198399999999996,
-    "tier2": 0.3504599999999998,
-    "tier3": 0.7649999999999998,
-    "total": 1.1574439999999995
+    "tier1": 0.04985599999999992,
+    "tier2": 0.24661999999999987,
+    "tier3": 0.42499999999999993,
+    "total": 0.7214759999999998
   },
-  "meetsTarget": false
+  "meetsTarget": true
 }
