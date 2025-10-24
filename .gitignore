@@ -27,6 +27,7 @@ coverage/
 dist/
 build/
 *.tgz
+artifacts/
 
 # Logs
 *.log

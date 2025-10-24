@@ -1,0 +1,100 @@
+[
+  {
+    "fingerprint": "fp-path",
+    "attempts": 1,
+    "history": [
+      {
+        "timestamp": "2025-10-24T05:23:14.521Z",
+        "success": false
+      }
+    ],
+    "lastAttempt": "2025-10-24T05:23:14.521Z",
+    "cooldownUntil": "2025-10-25T05:23:14.521Z",
+    "exhausted": false
+  },
+  {
+    "fingerprint": "fp-11",
+    "attempts": 0,
+    "history": [
+      {
+        "timestamp": "2025-10-24T05:23:17.367Z",
+        "success": true
+      }
+    ],
+    "lastAttempt": "2025-10-24T05:23:17.367Z",
+    "exhausted": false
+  },
+  {
+    "fingerprint": "fp-12",
+    "attempts": 0,
+    "history": [
+      {
+        "timestamp": "2025-10-24T05:23:17.381Z",
+        "success": true
+      }
+    ],
+    "lastAttempt": "2025-10-24T05:23:17.381Z",
+    "exhausted": false
+  },
+  {
+    "fingerprint": "fp-1",
+    "attempts": 0,
+    "history": [
+      {
+        "timestamp": "2025-10-24T05:23:24.586Z",
+        "success": true
+      }
+    ],
+    "lastAttempt": "2025-10-24T05:23:24.586Z",
+    "exhausted": false
+  },
+  {
+    "fingerprint": "fp-2",
+    "attempts": 0,
+    "history": [
+      {
+        "timestamp": "2025-10-24T05:23:24.602Z",
+        "success": true
+      }
+    ],
+    "lastAttempt": "2025-10-24T05:23:24.602Z",
+    "exhausted": false
+  },
+  {
+    "fingerprint": "fp-3",
+    "attempts": 0,
+    "history": [
+      {
+        "timestamp": "2025-10-24T05:23:24.606Z",
+        "success": true
+      }
+    ],
+    "lastAttempt": "2025-10-24T05:23:24.606Z",
+    "exhausted": false
+  },
+  {
+    "fingerprint": "fp-4",
+    "attempts": 0,
+    "history": [
+      {
+        "timestamp": "2025-10-24T05:23:24.609Z",
+        "success": true
+      }
+    ],
+    "lastAttempt": "2025-10-24T05:23:24.609Z",
+    "exhausted": false
+  },
+  {
+    "fingerprint": "fp-14",
+    "attempts": 1,
+    "history": [
+      {
+        "timestamp": "2025-10-24T05:23:54.738Z",
+        "success": false
+      }
+    ],
+    "lastAttempt": "2025-10-24T05:23:54.738Z",
+    "cooldownUntil": "2025-10-25T05:23:54.738Z",
+    "exhausted": false
+  }
+]

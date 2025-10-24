@@ -12,6 +12,9 @@ Homeostat is an automated error-fixing system that uses AI to detect, analyze, a
 - 📊 **Multi-Tier Strategy**: 70% DeepSeek (cheap) + 25% hybrid + 5% GPT-5 (complex)
 - 🔄 **Smart Retry Logic**: 2-attempt strategy with deterministic failure detection
 - ✅ **Test-Gated**: Only merges fixes that pass test suite
+- 🏢 **Multi-Repository Support**: Single Homeostat deployment orchestrates fixes across Convert My File, NoteBridge, and Palette Kit
+- 🩹 **Self-Healing Pattern Library**: Feature-flagged learning captures successful patches and replays zero-cost fixes once confidence exceeds 80%
+- 📈 **Enhanced Observability**: GitHub Action summaries, JSONL telemetry artifacts, and guardrail metrics keep automation accountable
 
 ## Integration with CloakPipe
 
