@@ -1,0 +1,136 @@
+name: Documentation
+description: Report missing, incorrect, or unclear documentation
+title: "[Docs]: "
+labels: ["documentation", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thanks for improving our documentation!
+        Please fill out the sections below to help us improve our docs.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Documentation Type
+      description: What kind of documentation issue is this?
+      options:
+        - Missing documentation
+        - Incorrect/outdated documentation
+        - Unclear/confusing documentation
+        - Typo or formatting issue
+        - Code example doesn't work
+        - Missing API reference
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: location
+    attributes:
+      label: Documentation Location
+      description: Where is the documentation issue? (provide URL or file path)
+      placeholder: |
+        - URL: https://github.com/littlebearapps/palette-kit/blob/main/README.md#installation
+        - File: docs/api/color-picker.md, line 42
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current Documentation
+      description: What does the current documentation say? (copy/paste or screenshot)
+      placeholder: Paste the current documentation text here
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: What's Wrong?
+      description: What's incorrect, unclear, or missing?
+      placeholder: |
+        Example: The installation instructions say to run "npm install palette-kit" but the package is actually "@littlebearapps/palette-kit"
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested Fix
+      description: How should the documentation be corrected or improved?
+      placeholder: Provide the corrected text, or describe what should be added
+      render: markdown
+    validations:
+      required: false
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Audience
+      description: Who is affected by this documentation issue?
+      options:
+        - New users (getting started)
+        - Developers (API reference)
+        - Contributors (contributing guide)
+        - All users
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this documentation issue?
+      options:
+        - Critical (Blocks users from using the product)
+        - High (Causes significant confusion)
+        - Medium (Minor confusion, workaround exists)
+        - Low (Typo or formatting)
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples or References
+      description: Provide examples of good documentation from other projects (if applicable)
+      placeholder: |
+        Example: React docs explain this concept well: https://react.dev/learn/...
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the documentation issue here
+      placeholder: "Example: This confused me when trying to set up the development environment"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to help fix this?
+      options:
+        - label: I can submit a PR to fix this documentation
+          required: false
+        - label: I can help review documentation changes
+          required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm before submitting
+      options:
+        - label: I have searched existing issues to ensure this isn't a duplicate
+          required: true
+        - label: I have provided the location of the documentation issue
+          required: true
+        - label: I have clearly described what's wrong or missing
+          required: true

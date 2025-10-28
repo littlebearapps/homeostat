@@ -11,6 +11,7 @@ import { metrics } from '../shared/observability/metrics.js';
 import { CostTracker, type TokenUsage } from '../shared/cost/tracker.js';
 import { FailureFingerprinter } from '../shared/patterns/fingerprinter.js';
 import { AttemptStore, MAX_ATTEMPTS } from '../shared/patterns/attempt-store.js';
+import { GitHubCircuitBreaker } from '../shared/patterns/github-circuit-breaker.js';
 import { PatternMatcher } from '../shared/patterns/matcher.js';
 import { PatternExtractor } from '../shared/patterns/extractor.js';
 import { PatternLearner } from '../shared/patterns/learner.js';
@@ -34,6 +35,7 @@ export interface GitHubAdapter {
   }): Promise<{ number: number; state?: string }> | { number: number; state?: string };
   addComment(issueNumber: number, comment: string): Promise<void> | void;
   addLabel?(issueNumber: number, label: string): Promise<void> | void;
+  octokit?: any; // Optional Octokit instance for circuit breaker integration
 }
 
 export interface ExecutionRouting {
@@ -234,6 +236,43 @@ export async function processIssue(
     return { rejected: true, reason };
   }
 
+  // NEW: Create circuit breaker instance if octokit available
+  let circuitBreaker: GitHubCircuitBreaker | null = null;
+  if (githubAPI.octokit) {
+    const [owner, repo] = repoSlug.split('/');
+    circuitBreaker = new GitHubCircuitBreaker({
+      octokit: githubAPI.octokit,
+      owner,
+      repo,
+      maxHops: 3
+    });
+
+    // NEW: Try to acquire lock atomically
+    const lockResult = await circuitBreaker.acquireLockAndIncrementHop(issueNumber, {
+      trace: `orchestrator-${issueNumber}`,
+      reason: 'Automated fix attempt'
+    });
+
+    if (!lockResult.acquired) {
+      logger.info('Lock acquisition failed', {
+        issueNumber,
+        reason: lockResult.reason
+      });
+      logMetrics({
+        errors: [lockResult.reason || 'lock_failed']
+      });
+      return {
+        skipped: true,
+        reason: lockResult.reason || 'lock_failed'
+      };
+    }
+
+    logger.info('Lock acquired successfully', {
+      issueNumber,
+      currentHop: lockResult.currentHop
+    });
+  }
+
   const attemptStore = new AttemptStore();
   const fingerprint = FailureFingerprinter.normalize({
     type: parsed.errorType || 'UnknownError',
@@ -249,6 +288,12 @@ export async function processIssue(
     const reason = 'cooldown_active';
     logger.info('Skipping issue due to active cooldown', { fingerprint: attemptKey });
     context.cooldowns += 1;
+
+    // Release lock before returning
+    if (circuitBreaker) {
+      await circuitBreaker.releaseLock(issueNumber);
+    }
+
     logMetrics({
       fingerprintsProcessed: [fingerprint.id],
       cooldowns: 1,
@@ -257,6 +302,8 @@ export async function processIssue(
     return { skipped: true, reason };
   }
 
+  // NEW: Wrap main processing in try/finally to ensure lock is always released
+  try {
   const matcher = await PatternMatcher.fromFile();
   const patternMatch = matcher.match(fingerprint);
 
@@ -513,6 +560,17 @@ export async function processIssue(
     retries,
     delayHistory
   };
+
+  } finally {
+    // NEW: Always release lock
+    if (circuitBreaker) {
+      try {
+        await circuitBreaker.releaseLock(issueNumber);
+      } catch (error) {
+        logger.warn('Failed to release lock', { error });
+      }
+    }
+  }
 }
 async function createPullRequestWithRetry({
   githubAPI,
