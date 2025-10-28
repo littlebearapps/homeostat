@@ -11,8 +11,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: homeostat-${{ github.event.issue.number }}
-  cancel-in-progress: false
+  group: homeostat-${{ github.repository }}-${{ github.event.issue.number || 'sweep' }}
+  cancel-in-progress: true
 
 jobs:
   auto-fix:
