@@ -14,6 +14,7 @@ Homeostat is an agentic fix pipeline that restores your repo to a steady, health
 - `README.md` - Project documentation
 - `docs/NEXT-STEPS.md` - **Testing, deployment, and validation guide (START HERE)** ⭐
 - `docs/REMAINING-TASKS.md` - **Phase 2-3 deployment checklist**
+- `docs/CIRCUIT-BREAKER-MIGRATION.md` - **Circuit breaker atomic locking migration guide** ⭐
 - `docs/CLOAKPIPE-INTEGRATION.md` - **Integration contract with CloakPipe**
 - `docs/HIGH-PRIORITY-ENHANCEMENTS-PLAN.md` - Completed 1-day implementation plan
 - `docs/FUTURE-ENHANCEMENTS.md` - Deferred enhancements (post-production)
@@ -124,15 +125,18 @@ User: "Use git-workflow-manager to ship this feature"
 
 ## Current Focus
 
-**Date**: 2025-10-24
-**Status**: ✅ **PRODUCTION READY + ENHANCEMENTS COMPLETE**
-**Test Results**: 193/193 base tests + 19 new tests passing (100%)
+**Date**: 2025-10-28
+**Status**: ✅ **PRODUCTION READY + RACE-CONDITION HARDENING COMPLETE**
+**Test Results**: 230/230 tests passing (100%)
 **Coverage**: 97.9%-100% on all critical modules
 **Projected Cost**: $5.77-$6.99/year (38% under $9.28 target)
 **New Capabilities**:
 - ✅ Multi-repository support (central orchestrator + repo manager)
 - ✅ Self-healing loop with feature flag (fingerprinting, pattern learning, cooldown store)
 - ✅ Enhanced observability (summaries, JSONL telemetry, safety guardrails)
+- ✅ **Atomic circuit breaker locking** (ETag-based, prevents duplicate PRs from concurrent triggers)
+
+**Latest**: Atomic locking implemented (3.5 hours) - prevents race conditions when scheduled + webhook triggers run simultaneously.
 
 **Next Steps**: Deploy to Convert My File production (see `docs/REMAINING-TASKS.md`)
 

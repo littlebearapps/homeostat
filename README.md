@@ -15,6 +15,7 @@ Homeostat is an automated error-fixing system that uses AI to detect, analyze, a
 - 🏢 **Multi-Repository Support**: Single Homeostat deployment orchestrates fixes across Convert My File, NoteBridge, and Palette Kit
 - 🩹 **Self-Healing Pattern Library**: Feature-flagged learning captures successful patches and replays zero-cost fixes once confidence exceeds 80%
 - 📈 **Enhanced Observability**: GitHub Action summaries, JSONL telemetry artifacts, and guardrail metrics keep automation accountable
+- 🔐 **Atomic Circuit Breaker**: ETag-based locking prevents duplicate PRs when concurrent triggers (scheduled + webhook) fire simultaneously
 
 ## Integration with CloakPipe
 
@@ -55,6 +56,7 @@ CloakPipe creates issues in a specific format that Homeostat parses. **See [docs
 ## Documentation
 
 - [CloakPipe Integration Contract](docs/CLOAKPIPE-INTEGRATION.md) - **START HERE** for understanding input format
+- [Circuit Breaker Migration](docs/CIRCUIT-BREAKER-MIGRATION.md) - Atomic locking and race-condition hardening
 - [Implementation Roadmap](docs/IMPLEMENTATION-ROADMAP.md) - Complete Phase 0-5 plan
 - [DeepSeek Multi-AI Architecture](docs/DEEPSEEK-MULTI-AI-ARCHITECTURE.md) - System design
 - [Privacy & Security Guide](docs/PRIVACY-SECURITY-GUIDE.md) - Security framework
