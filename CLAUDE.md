@@ -136,9 +136,14 @@ User: "Use git-workflow-manager to ship this feature"
 - ✅ Enhanced observability (summaries, JSONL telemetry, safety guardrails)
 - ✅ **Atomic circuit breaker locking** (ETag-based, prevents duplicate PRs from concurrent triggers)
 
-**Latest**: Atomic locking implemented (3.5 hours) - prevents race conditions when scheduled + webhook triggers run simultaneously.
+**Latest**:
+- ✅ Atomic locking implemented (3.5 hours) - prevents race conditions when scheduled + webhook triggers run simultaneously
+- ✅ Circuit breaker labels created on all extension repos (5 min) - NoteBridge, Convert My File, Palette Kit
+- ✅ Ready for E2E testing when CloakPipe creates real issues
 
-**Next Steps**: Deploy to Convert My File production (see `docs/REMAINING-TASKS.md`)
+**Blocking Dependency**: CloakPipe Phase 3 (label emission when creating GitHub issues)
+
+**Next Steps After CloakPipe**: Deploy to Convert My File production (see `docs/REMAINING-TASKS.md`)
 
 ### ⚙️ Feature Flag System
 

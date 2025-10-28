@@ -1,8 +1,26 @@
 # Homeostat - Remaining Tasks
 
-**Status**: Ready for Phase 2 deployment
-**Last Updated**: 2025-10-24
+**Status**: Ready for E2E testing (awaiting CloakPipe Phase 3)
+**Last Updated**: 2025-10-28
 **Trial Extension**: Convert My File (changed from NoteBridge per user request)
+
+---
+
+## ✅ Pre-Deployment Setup Complete
+
+- [x] Circuit breaker labels created on all extension repos (2025-10-28)
+  - NoteBridge: 9 labels (hop:0-3, circuit-breaker, processing:homeostat, autofix:*)
+  - Convert My File: 9 labels (hop:0-3, circuit-breaker, processing:homeostat, autofix:*)
+  - Palette Kit: 9 labels (hop:0-3, circuit-breaker, processing:homeostat, autofix:*)
+- [x] Atomic locking implementation merged to main (PR #4)
+- [x] All tests passing (230/230)
+
+## 🚦 Blocking Dependency
+
+**Waiting on**: CloakPipe Phase 3 completion (label emission when creating GitHub issues)
+- Once CloakPipe creates issues with `robot` label, Homeostat will automatically trigger
+- Monitor lock acquisition logs to verify atomic locking works correctly
+- Watch for duplicate PRs (should be prevented by ETag-based locking)
 
 ---
 
@@ -15,6 +33,12 @@
 - [ ] Navigate to Convert My File repository
   ```bash
   cd ~/claude-code-tools/lba/apps/chrome-extensions/convert-my-file/main/
+  ```
+
+- [x] Verify circuit breaker labels exist
+  ```bash
+  gh label list --repo littlebearapps/convert-my-file | grep -E "(hop:|circuit-breaker|processing:homeostat|autofix:)"
+  # Expected: 9 labels (hop:0-3, circuit-breaker, processing:homeostat, autofix:attempted/success/failed)
   ```
 
 - [ ] Verify CloakPipe integration is complete

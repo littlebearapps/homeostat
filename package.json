@@ -18,6 +18,7 @@
     "slo:check": "tsx scripts/check-slos.ts",
     "metrics:export": "tsx scripts/export-metrics.ts",
     "validate:release": "bash scripts/validate-release-full.sh",
+    "setup:labels": "tsx scripts/setup-circuit-breaker-labels.ts",
     "lint": "eslint src/",
     "format": "prettier --write \"src/**/*.js\"",
     "typecheck": "tsc --noEmit"
