@@ -14,6 +14,7 @@ Homeostat is an agentic fix pipeline that restores your repo to a steady, health
 - `README.md` - Project documentation
 - `docs/NEXT-STEPS.md` - **Testing, deployment, and validation guide (START HERE)** ⭐
 - `docs/REMAINING-TASKS.md` - **Phase 2-3 deployment checklist**
+- `docs/API-MANAGEMENT-PLAN.md` - **API cost management plan (GPT-5 validated, 4-week rollout)** 💰
 - `docs/CIRCUIT-BREAKER-MIGRATION.md` - **Circuit breaker atomic locking migration guide** ⭐
 - `docs/CLOAKPIPE-INTEGRATION.md` - **Integration contract with CloakPipe**
 - `docs/HIGH-PRIORITY-ENHANCEMENTS-PLAN.md` - Completed 1-day implementation plan
@@ -146,7 +147,7 @@ User: "Use git-workflow-manager to ship this feature"
   - Branch protection enabled with required status checks
   - End-to-end pipeline tested successfully (issue #14)
 
-**Next Steps**: Production Monitoring & Real Error Testing
+**Next Steps**: See sections below
 
 ### Testing with Real Errors from Convert My File
 
@@ -165,13 +166,31 @@ User: "Use git-workflow-manager to ship this feature"
 - [ ] **Fixes #6-10**: Validate success rate (target: >70%), cost tracking (target: <$0.10 for 10 fixes)
 - [ ] Document learnings in `docs/CONVERT-MY-FILE-LEARNINGS.md`
 
-**Further Implementation Tasks**:
-1. **If needed**: Threshold tuning based on first 10 fixes (see REMAINING-TASKS.md Task 2.7)
-2. **Phase 3**: Deploy to NoteBridge and PaletteKit (repeat Phase 2 process)
-3. **Cross-Extension Analysis**: Aggregate metrics across all 3 extensions
-4. **Pattern Library Growth**: Monitor self-healing pattern accumulation (enabled in production)
+### API Cost Management Plan
 
-**Reference**: See `docs/REMAINING-TASKS.md` for complete deployment checklist
+**Status**: ✅ Plan Complete (awaiting approval)
+**Document**: `docs/API-MANAGEMENT-PLAN.md` (48 KB, GPT-5 validated)
+
+**Why Needed**: Current costs are low ($6/year) but theoretical max without controls is $1,460/year (243× risk). Need budget enforcement, rate limiting, and monitoring as system scales to 3+ extensions.
+
+**Proposed Solution**:
+- Hard cap: $36/year (97.5% risk reduction)
+- Budget targets: $0.25/day, $1/week, $3/month
+- Rate limits: 50 global/20 per-repo (24h) + burst protection
+- 6 components: Budget Store, Rate Limiter, Cost Estimator, Alerts, Dashboard
+- 4-week phased rollout (44-60 hours)
+
+**Key Innovation**: GitHub-backed state with reserve-commit semantics prevents overspend race conditions across concurrent workflows.
+
+**Reference**: See `docs/API-MANAGEMENT-PLAN.md` for complete architecture, implementation phases, and GPT-5 expert analysis.
+
+### Further Implementation Tasks
+
+1. **API Management Implementation**: 4-week phased rollout (pending approval, see `docs/API-MANAGEMENT-PLAN.md`)
+2. **Phase 3 Deployment**: Deploy to NoteBridge and PaletteKit (see `docs/REMAINING-TASKS.md`)
+3. **Threshold Tuning**: Adjust based on first 10 fixes if needed (see `docs/REMAINING-TASKS.md` Task 2.7)
+4. **Cross-Extension Analysis**: Aggregate metrics across all 3 extensions
+5. **Pattern Library Growth**: Monitor self-healing pattern accumulation (enabled in production)
 
 ### ⚙️ Feature Flag System
 
