@@ -13,8 +13,8 @@
 
 **Objective**: Extend Homeostat to support CloakPipe's multi-platform expansion:
 - ✅ **Chrome Extensions** (existing, 100% backward compatible)
-- 🆕 **WordPress Plugin** (Service Registry ID: `cloudcode-wp-plugin`, Repo: `claudecode-wordpress-mcp`)
-- 🆕 **VPS Tools** (Brand Copilot: `brandcopilot`, Auditor Toolkit: `auditortoolkit`)
+- 🆕 **WordPress Plugin** (`claudecode-wordpress-mcp` - matches GitHub repo name)
+- 🆕 **VPS Tools** (Brand Copilot: `brand-copilot`, Auditor Toolkit: `auditor-toolkit`)
 - 🆕 **Cross-Browser** (Firefox, Safari, Edge - 100% compatible with existing parser)
 
 **Verdict**: ✅ **APPROVED** by Platform Team (Instance M)
@@ -61,9 +61,9 @@
 **Format**: `[{product}] {errorType}: {summary}` (exact match with Chrome extensions)
 
 **Product Names**:
-- WordPress: `[cloudcode-wp-plugin]` (Service Registry ID, maps to repo `claudecode-wordpress-mcp`)
-- VPS Brand Copilot: `[brandcopilot]` (no hyphen)
-- VPS Auditor Toolkit: `[auditortoolkit]` (no hyphen)
+- WordPress: `[claudecode-wordpress-mcp]` (matches GitHub repo name)
+- VPS Brand Copilot: `[brand-copilot]` (matches GitHub repo name)
+- VPS Auditor Toolkit: `[auditor-toolkit]` (matches GitHub repo name)
 - Chrome extensions: `[convert-my-file]`, `[notebridge]`, `[palette-kit]`
 
 **ErrorType Examples**:
@@ -74,9 +74,9 @@
 
 **Title Examples**:
 ```
-[cloudcode-wp-plugin] PDOException: Database connection failed
-[brandcopilot] UnhandledRejection: ECONNREFUSED
-[auditortoolkit] ValueError: Invalid CSV format
+[claudecode-wordpress-mcp] PDOException: Database connection failed
+[brand-copilot] UnhandledRejection: ECONNREFUSED
+[auditor-toolkit] ValueError: Invalid CSV format
 [convert-my-file] TypeError: Cannot read property 'data' of undefined
 ```
 
@@ -161,27 +161,25 @@ ECONNREFUSED: Connection refused at 127.0.0.1:3306
 
 **Preserved Template**: ✅ All sections unchanged (`## Error Details`, `## Stack Trace`, `## Breadcrumbs`)
 
-### Service Registry Mapping ✅ CONFIGURED
+### Product Naming Convention ✅ CONFIRMED
 
-**Platform Service Registry** handles product ID → GitHub repo mapping:
+**Product IDs match GitHub repository names** for uniformity:
 
 ```yaml
-- id: cloudcode-wp-plugin           # ← Product ID in issue titles
-  name: "CloudCode WordPress Plugin"
-  metadata:
-    github_repo: "littlebearapps/claudecode-wordpress-mcp"  # ← Actual repo
+- WordPress: claudecode-wordpress-mcp  # Matches repo: littlebearapps/claudecode-wordpress-mcp
+- Brand Copilot: brand-copilot         # Matches repo: littlebearapps/brand-copilot
+- Auditor Toolkit: auditor-toolkit     # Matches repo: littlebearapps/auditor-toolkit
+- Extensions: convert-my-file, notebridge, palette-kit
 ```
 
 **Homeostat Usage**:
 ```typescript
 // Parse issue title
-const issueTitle = "[cloudcode-wp-plugin] PDOException: Database error";
-const productId = parseTitle(issueTitle); // "cloudcode-wp-plugin"
+const issueTitle = "[claudecode-wordpress-mcp] PDOException: Database error";
+const productId = parseTitle(issueTitle); // "claudecode-wordpress-mcp"
 
-// Query Service Registry
-const registry = await getServiceRegistry(env);
-const service = registry.services.find(s => s.id === productId);
-const repoName = service.metadata.github_repo; // "littlebearapps/claudecode-wordpress-mcp"
+// Construct repo name (product ID matches repo name)
+const repoName = `littlebearapps/${productId}`; // "littlebearapps/claudecode-wordpress-mcp"
 
 // Create PR in correct repo
 await createPR(repoName, fixContent);
@@ -205,7 +203,7 @@ Homeostat currently supports Chrome extensions only:
 
 CloakPipe is expanding to support:
 
-1. **WordPress Plugin** (`cloudcode-wp-plugin`)
+1. **WordPress Plugin** (`claudecode-wordpress-mcp`)
    - Server-side PHP errors
    - WordPress-specific metadata (plugin version, WP version)
    - Inline template format: `**Field:** value`
@@ -421,7 +419,7 @@ const errorType = parseInlineField(body, 'Error Type');
 
 **Tasks**:
 - [x] Create 3 new GitHub repositories
-  - `littlebearapps/claudecode-wordpress-mcp` (private) ✅ (Service Registry ID: `cloudcode-wp-plugin`)
+  - `littlebearapps/claudecode-wordpress-mcp` (private) ✅ (Service Registry ID: `claudecode-wordpress-mcp`)
   - `littlebearapps/brand-copilot` (private) ✅
   - `littlebearapps/auditor-toolkit` (private) ✅
 - [x] Configure GitHub Secrets (9 total: 3 repos × 3 secrets) ✅
@@ -435,7 +433,7 @@ const errorType = parseInlineField(body, 'Error Type');
 - [x] Grant Homeostat PAT access ✅
   - Settings → Actions → General → Workflow permissions → Read and write
 - [x] Add to Platform Service Registry ✅
-  - Added 2 services: `cloudcode-wp-plugin`, `auditor-toolkit-github`
+  - Added 2 services: `claudecode-wordpress-mcp`, `auditor-toolkit-github`
 - [x] Send confirmation questions to CloakPipe ✅
   - WordPress/VPS issue title format → CONFIRMED
   - ErrorType extraction logic → CONFIRMED (native exception class names)
@@ -646,11 +644,11 @@ git push -u origin feature/multi-platform-support
 
 **Actions**:
 ```bash
-# For each repo: cloudcode-wp-plugin, brand-copilot, auditor-toolkit
+# For each repo: claudecode-wordpress-mcp, brand-copilot, auditor-toolkit
 
 # 1. Clone repo
-git clone git@github.com:littlebearapps/cloudcode-wp-plugin.git
-cd cloudcode-wp-plugin
+git clone git@github.com:littlebearapps/claudecode-wordpress-mcp.git
+cd claudecode-wordpress-mcp
 
 # 2. Copy Homeostat workflow
 mkdir -p .github/workflows
@@ -679,7 +677,7 @@ git push
 
 **Create Test Issues** (in each repo):
 
-1. **WordPress Test Issue** (`cloudcode-wp-plugin`):
+1. **WordPress Test Issue** (`claudecode-wordpress-mcp`):
 ```markdown
 Title: [CloudCode WP Plugin] PDOException: Database connection failed
 
@@ -753,7 +751,7 @@ NetworkError: Request timeout after 30s
 
 **Actions** (by CloakPipe):
 - Deploy multi-platform support to dev environment
-- Configure WordPress plugin to report to `cloudcode-wp-plugin` repo
+- Configure WordPress plugin to report to `claudecode-wordpress-mcp` repo
 - Configure VPS tools to report to respective repos
 - Verify label emission (`source:*`, product labels)
 
@@ -767,7 +765,7 @@ NetworkError: Request timeout after 30s
 
 1. **WordPress Error Flow**:
    - Trigger WordPress error (dev environment)
-   - CloakPipe creates issue in `cloudcode-wp-plugin` repo
+   - CloakPipe creates issue in `claudecode-wordpress-mcp` repo
    - Homeostat workflow triggers
    - Parser detects `source:wordpress`
    - Fix attempted, PR created
@@ -1058,7 +1056,7 @@ git push --tags
 
 1. **WordPress/VPS Issue Title Format** ✅ CONFIRMED
    - Format: `[{product}] {errorType}: {summary}` (exact match)
-   - Products: `cloudcode-wp-plugin`, `brandcopilot`, `auditortoolkit`
+   - Products: `claudecode-wordpress-mcp`, `brand-copilot`, `auditor-toolkit`
    - ErrorTypes: Native exception class names (e.g., `PDOException`, `ValueError`)
 
 2. **ErrorType Extraction** ✅ CONFIRMED

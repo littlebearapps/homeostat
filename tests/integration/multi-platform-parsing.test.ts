@@ -150,7 +150,7 @@ describe('Synthetic Breadcrumb Generation', () => {
 describe('WordPress Issue Parsing', () => {
   it('parses WordPress issue with inline format', () => {
     const issue = {
-      title: '[cloudcode-wp-plugin] PDOException: Database connection failed',
+      title: '[claudecode-wordpress-mcp] PDOException: Database connection failed',
       labels: [{ name: 'robot' }, { name: 'source:wordpress' }],
       number: 123,
       html_url: 'https://github.com/test/repo/issues/123',
@@ -181,7 +181,7 @@ User initiated backup operation`
     const result = parseServerIssue(issue);
 
     expect(result.errors).toHaveLength(0);
-    expect(result.parsed.product).toBe('cloudcode-wp-plugin');
+    expect(result.parsed.product).toBe('claudecode-wordpress-mcp');
     expect(result.parsed.errorType).toBe('PDOException');
     expect(result.parsed.errorMessage).toBe('Database connection failed');
     expect(result.parsed.occurrences).toBe(3);
@@ -197,7 +197,7 @@ User initiated backup operation`
 describe('VPS Issue Parsing', () => {
   it('parses VPS issue with inline format', () => {
     const issue = {
-      title: '[brandcopilot] UnhandledRejection: ECONNREFUSED',
+      title: '[brand-copilot] UnhandledRejection: ECONNREFUSED',
       labels: [{ name: 'robot' }, { name: 'source:vps' }],
       number: 456,
       html_url: 'https://github.com/test/repo/issues/456',
@@ -229,7 +229,7 @@ Daily cron job (3am) - last successful run 24h ago`
     const result = parseServerIssue(issue);
 
     expect(result.errors).toHaveLength(0);
-    expect(result.parsed.product).toBe('brandcopilot');
+    expect(result.parsed.product).toBe('brand-copilot');
     expect(result.parsed.errorType).toBe('UnhandledRejection');
     expect(result.parsed.errorMessage).toBe('ECONNREFUSED');
     expect(result.parsed.occurrences).toBe(1);
@@ -288,7 +288,7 @@ TypeError: Cannot read property "data" of undefined
 describe('parseLoggerIssue (Routing)', () => {
   it('routes WordPress issue to server parser', () => {
     const issue = {
-      title: '[cloudcode-wp-plugin] PDOException: Test',
+      title: '[claudecode-wordpress-mcp] PDOException: Test',
       labels: [{ name: 'source:wordpress' }],
       body: `**Error Type:** PDOException
 **Fingerprint:** test-123
@@ -305,7 +305,7 @@ Test stack trace
 
   it('routes VPS issue to server parser', () => {
     const issue = {
-      title: '[brandcopilot] Error: Test',
+      title: '[brand-copilot] Error: Test',
       labels: [{ name: 'source:vps' }],
       body: `**Error Type:** Error
 **Fingerprint:** test-456
@@ -366,7 +366,7 @@ Test stack trace
 describe('Edge Cases', () => {
   it('handles missing occurrences field (defaults to 1)', () => {
     const issue = {
-      title: '[cloudcode-wp-plugin] Error: Test',
+      title: '[claudecode-wordpress-mcp] Error: Test',
       labels: [{ name: 'source:wordpress' }],
       body: `**Error Type:** Error
 **Fingerprint:** test
@@ -383,7 +383,7 @@ Test
 
   it('handles invalid occurrences value (defaults to 1)', () => {
     const issue = {
-      title: '[cloudcode-wp-plugin] Error: Test',
+      title: '[claudecode-wordpress-mcp] Error: Test',
       labels: [{ name: 'source:wordpress' }],
       body: `**Error Type:** Error
 **Occurrences:** invalid
@@ -401,7 +401,7 @@ Test
 
   it('validates required fields for server issues', () => {
     const issue = {
-      title: '[cloudcode-wp-plugin] Error: Test',
+      title: '[claudecode-wordpress-mcp] Error: Test',
       labels: [{ name: 'source:wordpress' }],
       body: '**Error Type:** Error'
       // Missing stack trace and fingerprint
@@ -415,7 +415,7 @@ Test
 
   it('does not require breadcrumbs for server issues', () => {
     const issue = {
-      title: '[cloudcode-wp-plugin] Error: Test',
+      title: '[claudecode-wordpress-mcp] Error: Test',
       labels: [{ name: 'source:wordpress' }],
       body: `**Error Type:** Error
 **Fingerprint:** test

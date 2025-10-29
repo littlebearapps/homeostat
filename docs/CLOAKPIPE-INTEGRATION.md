@@ -161,16 +161,14 @@ User was trying to sync notes when the error occurred.
 ```
 
 **Examples**:
-- `[cloudcode-wp-plugin] PDOException: Database connection failed`
-- `[brandcopilot] UnhandledRejection: ECONNREFUSED`
-- `[auditortoolkit] ValueError: Invalid CSV format`
+- `[claudecode-wordpress-mcp] PDOException: Database connection failed`
+- `[brand-copilot] UnhandledRejection: ECONNREFUSED`
+- `[auditor-toolkit] ValueError: Invalid CSV format`
 
 **Product Names**:
-- `cloudcode-wp-plugin` - WordPress plugin (Service Registry ID)
-- `brandcopilot` - VPS Brand Copilot tool
-- `auditortoolkit` - VPS Auditor Toolkit
-
-**Note**: Product name `cloudcode-wp-plugin` maps to GitHub repo `littlebearapps/claudecode-wordpress-mcp` via Platform Service Registry.
+- `claudecode-wordpress-mcp` - WordPress plugin (matches GitHub repo name)
+- `brand-copilot` - VPS Brand Copilot tool (matches GitHub repo name)
+- `auditor-toolkit` - VPS Auditor Toolkit (matches GitHub repo name)
 
 #### Issue Body (Inline Field Format)
 
@@ -326,7 +324,7 @@ Homeostat **requires** these fields to function:
 
 **Servers**:
 - Format: `**Product:** ProductName` OR extracted from title
-- Examples: `cloudcode-wp-plugin`, `brandcopilot`, `auditortoolkit`
+- Examples: `claudecode-wordpress-mcp`, `brand-copilot`, `auditor-toolkit`
 - Parsing: Use `parseInlineField(body, 'Product')` OR title extraction
 
 #### Error Type (required)
