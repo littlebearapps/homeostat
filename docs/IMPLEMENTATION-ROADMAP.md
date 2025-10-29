@@ -1,8 +1,8 @@
 # Homeostat - Implementation Roadmap
 
-**Date**: 2025-10-23
-**Status**: Ready to Begin
-**Total Timeline**: 30-41 hours (Homeostat only)
+**Date**: 2025-10-29 (Updated)
+**Status**: Phase 0-1A Complete, Phase 1B Deferred, Phase 1C In Planning
+**Total Timeline**: 30-41 hours (Phases 0-1A) + 10 hours (Phase 1C)
 **Cost**: $9.28/year (97.7% savings vs original plan)
 
 ---
@@ -11,21 +11,28 @@
 
 **What We're Building**:
 
-**Homeostat** - An automated bug-fixing system that uses AI (DeepSeek V3.2-Exp + GPT-5) and GitHub Actions to detect, analyze, and repair errors in Chrome extensions.
+**Homeostat** - An automated bug-fixing system that uses AI (DeepSeek V3.2-Exp + GPT-5) and GitHub Actions to detect, analyze, and repair errors in Chrome extensions, WordPress plugins, and VPS tools.
 
 **How it works**:
-1. [Logger](https://github.com/littlebearapps/logger) captures errors and creates GitHub issues with `robot` label
+1. [CloakPipe](https://github.com/littlebearapps/cloakpipe) captures errors and creates GitHub issues with `robot` label
 2. Homeostat analyzes complexity and selects appropriate AI tier
 3. AI attempts fix with retry logic
 4. Tests validate the fix
-5. Canary deployment progressively rolls out (1% → 5% → 25% → 100%)
-6. Automatic rollback if error rate increases
+5. PR created for manual review and merge
+
+**Implementation Status**:
+- ✅ **Phase 0**: Privacy & Security (COMPLETE - 100% test coverage)
+- ✅ **Phase 1A**: Core Implementation (COMPLETE - 230/230 tests passing, production deployed to Convert My File)
+- ⏸️ **Phase 1B**: Alerting & Reporting (DEFERRED - see `PHASE-1B-IMPLEMENTATION-PLAN.md`)
+- 🚀 **Phase 1C**: CloakPipe Multi-Platform Integration (IN PLANNING - see `PHASE-1C-CLOAKPIPE-MULTIPLATFORM.md`)
 
 **Key Decisions Made**:
 - ✅ **GitHub Projects via gh CLI** (not Linear, not MCP) - $0/year, 0 hours dev time
 - ✅ **Tiered Privacy Strategy** - DeepSeek for generic, GPT-5 for sensitive (9.5/10 privacy)
 - ✅ **2-Attempt Retry Logic** - Catches flaky tests (+18% cost, +15% reliability)
 - ✅ **Privacy Option A** - Hybrid DeepSeek + GPT-5 ($8.50/year AI cost)
+- ✅ **Multi-Platform Support** - WordPress, VPS tools (Phase 1C)
+- ✅ **Atomic Circuit Breaker** - ETag-based locking prevents race conditions
 
 **Final Cost**: $9.28/year total (AI + retry overhead)
 
@@ -33,11 +40,13 @@
 
 ## Table of Contents
 
-1. [Phase 0: Privacy & Security (8-10 hours)](#phase-0-privacy--security)
-2. [Phase 1: Homeostat Core (22-31 hours)](#phase-1-homeostat-core)
-3. [Success Metrics](#success-metrics)
-4. [Monitoring & Alerts](#monitoring--alerts)
-5. [Integration with Logger](#integration-with-logger)
+1. [Phase 0: Privacy & Security](#phase-0-privacy--security) ✅ COMPLETE
+2. [Phase 1A: Homeostat Core](#phase-1a-homeostat-core) ✅ COMPLETE
+3. [Phase 1B: Alerting & Reporting](#phase-1b-alerting--reporting) ⏸️ DEFERRED
+4. [Phase 1C: CloakPipe Multi-Platform](#phase-1c-cloakpipe-multi-platform) 🚀 IN PLANNING
+5. [Success Metrics](#success-metrics)
+6. [Monitoring & Alerts](#monitoring--alerts)
+7. [Integration with CloakPipe](#integration-with-cloakpipe)
 
 ---
 
@@ -405,7 +414,70 @@ class CanaryDeployment {
 
 **Cost**: $9.28/year for 1,000 fixes
 
-**Ready for**: Extension integration (see [Logger repository](https://github.com/littlebearapps/logger))
+**Ready for**: Extension integration (see [CloakPipe repository](https://github.com/littlebearapps/cloakpipe))
+
+---
+
+## Phase 1B: Alerting & Reporting
+
+**Timeline**: Deferred (Optional Post-Production Enhancement)
+**Status**: ⏸️ DEFERRED until 30 days production usage
+**Effort**: 1 hour (minimal) or 3-4 hours (full implementation)
+
+**See**: `PHASE-1B-IMPLEMENTATION-PLAN.md` for complete specification
+
+**Summary**: Budget alerts and weekly reports for Homeostat usage. Deferred because:
+- Current budget caps ($0.066/day per repo) provide hard limits
+- Rate limiting (5/min, 20/day) prevents runaway costs
+- No production data yet to tune alert thresholds
+- Optional enhancement, not blocking production deployment
+
+**Recommendation**: Re-evaluate after 30 days production usage with real cost data.
+
+---
+
+## Phase 1C: CloakPipe Multi-Platform
+
+**Timeline**: 5 weeks (Week 0 + Weeks 1-4)
+**Status**: 🚀 IN PLANNING (Platform approval received)
+**Effort**: ~10 hours (Homeostat) + 2-3 hours (Platform Week 0)
+
+**See**: `PHASE-1C-CLOAKPIPE-MULTIPLATFORM.md` for complete implementation plan
+
+**Objective**: Extend Homeostat to support CloakPipe's multi-platform expansion:
+- ✅ Chrome Extensions (existing, 100% backward compatible)
+- 🆕 WordPress Plugin (cloudcode-wp-plugin)
+- 🆕 VPS Tools (Brand Copilot, Auditor Toolkit)
+- 🆕 Cross-Browser (Firefox, Safari, Edge - 100% compatible)
+
+**Key Changes**:
+1. **Dual Parser** - Extension vs server template formats
+2. **Source Detection** - Via labels (`source:wordpress`, `source:vps`, `source:cloakpipe`)
+3. **Synthetic Breadcrumbs** - Generated for servers (no user action trail)
+4. **Repository Setup** - Install workflows in 3 new repos
+5. **Integration Testing** - E2E validation with CloakPipe
+
+**Deployment Timeline**:
+- **Week 0**: Platform creates repos, configures secrets, confirms CloakPipe questions (Platform Team)
+- **Week 1**: Implement dual parser, deploy to dev (Homeostat Team)
+- **Week 2**: Install workflows, test with synthetic issues (Homeostat Team)
+- **Week 3**: CloakPipe dev deployment + E2E testing (Joint)
+- **Week 4**: CloakPipe prod deployment + monitoring (Joint)
+
+**Backward Compatibility**: ✅ **100%** - Zero breaking changes to existing Chrome extension support
+- All 230 existing tests must pass
+- Extension parser code unchanged
+- Default source type: `extension`
+
+**Success Criteria**:
+- >70% fix success rate (WordPress, VPS)
+- 100% fix success rate (extensions, no regression)
+- Zero parsing errors
+- Cost per fix <$0.10
+
+**Risk Level**: 🟢 **LOW** - Well-defined scope, phased rollout, comprehensive testing
+
+**Platform Approval**: ✅ **APPROVED** by Platform Team (Instance M) - See Platform feedback in compatibility analysis document
 
 ---
 
@@ -487,35 +559,51 @@ class CanaryDeployment {
 
 ---
 
-## Integration with Logger
+## Integration with CloakPipe
 
-**IMPORTANT**: Homeostat receives error reports from the [Logger repository](https://github.com/littlebearapps/logger).
+**IMPORTANT**: Homeostat receives error reports from [CloakPipe](https://github.com/littlebearapps/cloakpipe), the error reporting Cloudflare Worker.
 
 **How integration works**:
-1. Logger captures errors in Chrome extensions
-2. Logger sanitizes PII and creates GitHub issues
-3. Logger adds `robot` label to issue
+1. CloakPipe captures errors from Chrome extensions, WordPress plugins, and VPS tools
+2. CloakPipe sanitizes PII and creates GitHub issues in appropriate repositories
+3. CloakPipe adds `robot` label to trigger Homeostat
 4. Homeostat GitHub Actions workflow triggers
-5. Homeostat analyzes, fixes, tests, and deploys
+5. Homeostat analyzes, fixes, tests, and creates PR for review
 
-**Integration contract**: See [docs/LOGGER-INTEGRATION.md](LOGGER-INTEGRATION.md) for complete specification of:
+**Integration contract**: See [docs/CLOAKPIPE-INTEGRATION.md](CLOAKPIPE-INTEGRATION.md) for complete specification of:
 - Expected issue format (title, body sections, required fields)
-- Trigger mechanism (`robot` label)
-- Parsing logic for extracting error data
+- Trigger mechanism (`robot` label, `source:*` labels)
+- Parsing logic for extensions vs servers
+- Multi-platform support (Chrome, Firefox, Safari, Edge, WordPress, VPS)
 - Privacy validation requirements
 
-**Logger repository**: https://github.com/littlebearapps/logger
+**Multi-Platform Support**: See [docs/PHASE-1C-CLOAKPIPE-MULTIPLATFORM.md](PHASE-1C-CLOAKPIPE-MULTIPLATFORM.md) for complete implementation plan.
+
+**CloakPipe repository**: https://github.com/littlebearapps/cloakpipe
 
 ---
 
 ## Next Steps
 
-**Ready to start?** Begin with Phase 0 (Privacy & Security) - the foundation everything else builds on.
+**Current Status**: Phases 0-1A complete and deployed to Convert My File. Phase 1C (multi-platform) in planning.
+
+**Active Development**:
+- **Phase 1C**: CloakPipe Multi-Platform Integration (see `PHASE-1C-CLOAKPIPE-MULTIPLATFORM.md`)
+  - Week 0: Platform preparation (repos, secrets, CloakPipe confirmation)
+  - Week 1-2: Dual parser implementation and testing
+  - Week 3-4: CloakPipe integration and production deployment
 
 **Key Documentation**:
-- **[LOGGER-INTEGRATION.md](LOGGER-INTEGRATION.md)** - Integration contract (READ FIRST)
+- **[CLOAKPIPE-INTEGRATION.md](CLOAKPIPE-INTEGRATION.md)** - Integration contract (READ FIRST)
+- **[PHASE-1C-CLOAKPIPE-MULTIPLATFORM.md](PHASE-1C-CLOAKPIPE-MULTIPLATFORM.md)** - Multi-platform implementation plan
+- **[PHASE-1B-IMPLEMENTATION-PLAN.md](PHASE-1B-IMPLEMENTATION-PLAN.md)** - Alerting/reporting (deferred)
 - **[PRIVACY-SECURITY-GUIDE.md](PRIVACY-SECURITY-GUIDE.md)** - Complete privacy implementation with code
 - **[DEEPSEEK-MULTI-AI-ARCHITECTURE.md](DEEPSEEK-MULTI-AI-ARCHITECTURE.md)** - Multi-tier AI strategy with edge cases
-- **[FOLLOW-UP-QUESTIONS-ANSWERED.md](FOLLOW-UP-QUESTIONS-ANSWERED.md)** - Architectural Q&A
+- **[REMAINING-TASKS.md](REMAINING-TASKS.md)** - Phase 2-3 deployment checklist
+- **[NEXT-STEPS.md](NEXT-STEPS.md)** - Testing, deployment, and validation guide
+
+**Production Monitoring**:
+- Convert My File: Production deployment complete, monitoring first 10 fixes
+- Next: NoteBridge and PaletteKit (Phase 3)
 
 **Let's ship it!** 🚀
