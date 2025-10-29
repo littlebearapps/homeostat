@@ -19,6 +19,10 @@
     "metrics:export": "tsx scripts/export-metrics.ts",
     "validate:release": "bash scripts/validate-release-full.sh",
     "setup:labels": "tsx scripts/setup-circuit-breaker-labels.ts",
+    "budget:status": "tsx scripts/check-budget-status.ts",
+    "budget:reset": "tsx scripts/reset-budget.ts",
+    "ratelimit:status": "tsx scripts/check-ratelimit-status.ts",
+    "ratelimit:reset": "tsx scripts/reset-ratelimit.ts",
     "lint": "eslint src/",
     "format": "prettier --write \"src/**/*.js\"",
     "typecheck": "tsc --noEmit"
