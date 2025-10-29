@@ -168,7 +168,8 @@ User: "Use git-workflow-manager to ship this feature"
 
 ### API Cost Management Plan
 
-**Status**: ✅ **IN PROGRESS** - Phase 1A (Enhanced Per-Repo Approach)
+**Status**: ✅ **COMPLETE** - Phase 1A Deployed (2025-10-29)
+**PR**: #7 - https://github.com/littlebearapps/homeostat/pull/7
 **Document**: `docs/API-MANAGEMENT-PLAN.md` (48 KB, original plan with central state)
 
 **Architecture Decision** (2025-10-29, GPT-5 validated):
@@ -176,18 +177,26 @@ User: "Use git-workflow-manager to ship this feature"
 - **Rationale**: 95% risk reduction for 50% effort (per-repo caps: $72/year vs global cap: $36/year = only 2.5% delta)
 - **Implementation**: Per-repo git-persisted state (no central repository needed)
 
-**Why Simplified**:
-- Current costs very low ($6/year), concurrent multi-repo spikes unlikely
-- Per-repo caps ($0.066/day × 3 = $0.198/day) provide 96% of global cap protection ($0.25/day)
-- Independent extensions, strong circuit breakers, CloakPipe deduplication
-- Can upgrade to central state later (8-10 hours) if data shows need
+**Phase 1A Complete** (6 hours actual):
+- ✅ Per-repo budget tracking (git commit/push to `.homeostat/state/`)
+- ✅ Dual-window rate limiting (1min burst: 5 attempts, 24h throughput: 20 attempts)
+- ✅ Reservation/refund pattern (pre-flight protection)
+- ✅ Workflow concurrency groups (prevent races without complex locking)
+- ✅ Per-repo caps: $0.066/day ($24/year hard cap each)
+- ✅ 61 unit tests (100% passing, 100% coverage on new modules)
+- ✅ Management tools (`npm run budget:status`, `ratelimit:status`, etc.)
 
-**Phase 1A Implementation** (6-9 hours):
-- Per-repo budget tracking (git commit/push to `.homeostat/state/`)
-- Dual-window rate limiting (1min burst + 24h throughput)
-- Reservation/refund pattern (pre-flight protection)
-- Workflow concurrency groups (prevent races without complex locking)
-- Per-repo caps: $0.066/day ($24/year hard cap each)
+**Usage**:
+```bash
+npm run budget:status       # Check budget across all periods
+npm run budget:reset        # Manual reset (with confirmation)
+npm run ratelimit:status    # Check rate limit windows
+npm run ratelimit:reset     # Manual reset (with confirmation)
+```
+
+**State Files** (git-persisted in production):
+- `.homeostat/state/budget.json` - Budget tracking (daily/weekly/monthly)
+- `.homeostat/state/rate_limiter.json` - Rate limit timestamps
 
 **Upgrade Criteria** (monitor for 2-4 weeks):
 - 3+ concurrent spike incidents across repos within 30 days, OR
@@ -204,8 +213,8 @@ User: "Use git-workflow-manager to ship this feature"
 
 ### Further Implementation Tasks
 
-1. **API Management Phase 1A**: ✅ In progress (per-repo budget + rate limit, 6-9 hours)
-2. **API Management Phase 2-4**: Intelligence, observability, validation (pending Phase 1A completion)
+1. **API Management Phase 1A**: ✅ Complete (deployed 2025-10-29, PR #7)
+2. **API Management Phase 1B**: ⏸️ Optional - Alerting & Reporting (deferred, see below)
 3. **Phase 3 Deployment**: Deploy to NoteBridge and PaletteKit (see `docs/REMAINING-TASKS.md`)
 4. **Threshold Tuning**: Adjust based on first 10 fixes if needed (see `docs/REMAINING-TASKS.md` Task 2.7)
 5. **Cross-Extension Analysis**: Aggregate metrics across all 3 extensions

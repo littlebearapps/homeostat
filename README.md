@@ -16,6 +16,7 @@ Homeostat is an automated error-fixing system that uses AI to detect, analyze, a
 - 🩹 **Self-Healing Pattern Library**: Feature-flagged learning captures successful patches and replays zero-cost fixes once confidence exceeds 80%
 - 📈 **Enhanced Observability**: GitHub Action summaries, JSONL telemetry artifacts, and guardrail metrics keep automation accountable
 - 🔐 **Atomic Circuit Breaker**: ETag-based locking prevents duplicate PRs when concurrent triggers (scheduled + webhook) fire simultaneously
+- 💸 **Budget & Rate Limiting**: Per-repo caps ($0.066/day) with dual-window rate limiting (5/min burst, 20/day throughput) - git-persisted state with reservation/refund pattern
 
 ## Integration with CloakPipe
 
