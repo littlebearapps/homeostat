@@ -168,29 +168,57 @@ User: "Use git-workflow-manager to ship this feature"
 
 ### API Cost Management Plan
 
-**Status**: ✅ Plan Complete (awaiting approval)
-**Document**: `docs/API-MANAGEMENT-PLAN.md` (48 KB, GPT-5 validated)
+**Status**: ✅ **COMPLETE** - Phase 1A Deployed (2025-10-29)
+**PR**: #7 - https://github.com/littlebearapps/homeostat/pull/7
+**Document**: `docs/API-MANAGEMENT-PLAN.md` (48 KB, original plan with central state)
 
-**Why Needed**: Current costs are low ($6/year) but theoretical max without controls is $1,460/year (243× risk). Need budget enforcement, rate limiting, and monitoring as system scales to 3+ extensions.
+**Architecture Decision** (2025-10-29, GPT-5 validated):
+- **Chosen**: Enhanced per-repo approach (Approach C from plan)
+- **Rationale**: 95% risk reduction for 50% effort (per-repo caps: $72/year vs global cap: $36/year = only 2.5% delta)
+- **Implementation**: Per-repo git-persisted state (no central repository needed)
 
-**Proposed Solution**:
-- Hard cap: $36/year (97.5% risk reduction)
-- Budget targets: $0.25/day, $1/week, $3/month
-- Rate limits: 50 global/20 per-repo (24h) + burst protection
-- 6 components: Budget Store, Rate Limiter, Cost Estimator, Alerts, Dashboard
-- 4-week phased rollout (44-60 hours)
+**Phase 1A Complete** (6 hours actual):
+- ✅ Per-repo budget tracking (git commit/push to `.homeostat/state/`)
+- ✅ Dual-window rate limiting (1min burst: 5 attempts, 24h throughput: 20 attempts)
+- ✅ Reservation/refund pattern (pre-flight protection)
+- ✅ Workflow concurrency groups (prevent races without complex locking)
+- ✅ Per-repo caps: $0.066/day ($24/year hard cap each)
+- ✅ 61 unit tests (100% passing, 100% coverage on new modules)
+- ✅ Management tools (`npm run budget:status`, `ratelimit:status`, etc.)
 
-**Key Innovation**: GitHub-backed state with reserve-commit semantics prevents overspend race conditions across concurrent workflows.
+**Usage**:
+```bash
+npm run budget:status       # Check budget across all periods
+npm run budget:reset        # Manual reset (with confirmation)
+npm run ratelimit:status    # Check rate limit windows
+npm run ratelimit:reset     # Manual reset (with confirmation)
+```
 
-**Reference**: See `docs/API-MANAGEMENT-PLAN.md` for complete architecture, implementation phases, and GPT-5 expert analysis.
+**State Files** (git-persisted in production):
+- `.homeostat/state/budget.json` - Budget tracking (daily/weekly/monthly)
+- `.homeostat/state/rate_limiter.json` - Rate limit timestamps
+
+**Upgrade Criteria** (monitor for 2-4 weeks):
+- 3+ concurrent spike incidents across repos within 30 days, OR
+- Org-wide spend ≥ $0.20/day observed 5+ times in 30 days, OR
+- Need for budget pool sharing across repos
+
+**If Issues Occur**:
+1. Check `.homeostat/state/budget.json` for current spend/caps
+2. Review workflow logs for budget blocks or rate limit hits
+3. Verify workflow concurrency group working (no concurrent runs)
+4. If concurrent multi-repo spikes observed, consider upgrading to central state (see `docs/API-MANAGEMENT-PLAN.md` Approach A)
+
+**Reference**: See `docs/API-MANAGEMENT-PLAN.md` for full context and central state migration path.
 
 ### Further Implementation Tasks
 
-1. **API Management Implementation**: 4-week phased rollout (pending approval, see `docs/API-MANAGEMENT-PLAN.md`)
-2. **Phase 3 Deployment**: Deploy to NoteBridge and PaletteKit (see `docs/REMAINING-TASKS.md`)
-3. **Threshold Tuning**: Adjust based on first 10 fixes if needed (see `docs/REMAINING-TASKS.md` Task 2.7)
-4. **Cross-Extension Analysis**: Aggregate metrics across all 3 extensions
-5. **Pattern Library Growth**: Monitor self-healing pattern accumulation (enabled in production)
+1. **API Management Phase 1A**: ✅ Complete (deployed 2025-10-29, PR #7)
+2. **API Management Phase 1B**: ⏸️ Optional - Alerting & Reporting (deferred, see below)
+3. **Phase 3 Deployment**: Deploy to NoteBridge and PaletteKit (see `docs/REMAINING-TASKS.md`)
+4. **Threshold Tuning**: Adjust based on first 10 fixes if needed (see `docs/REMAINING-TASKS.md` Task 2.7)
+5. **Cross-Extension Analysis**: Aggregate metrics across all 3 extensions
+6. **Pattern Library Growth**: Monitor self-healing pattern accumulation (enabled in production)
 
 ### ⚙️ Feature Flag System
 

@@ -17,6 +17,8 @@ import { PatternExtractor } from '../shared/patterns/extractor.js';
 import { PatternLearner } from '../shared/patterns/learner.js';
 import { JSONLLogger, type RunMetrics } from './telemetry/jsonl-logger.js';
 import { generatePRBody } from './templates/pr-template.js';
+import { BudgetStore } from '../shared/budget/store.js';
+import { RateLimiter } from '../shared/rate-limit/limiter.js';
 
 export interface GitHubIssueLike {
   number: number;
@@ -302,7 +304,108 @@ export async function processIssue(
     return { skipped: true, reason };
   }
 
-  // NEW: Wrap main processing in try/finally to ensure lock is always released
+  // NEW: Budget and rate limit checks (Phase 1A)
+  // Skip in test environment to avoid interference with E2E tests
+  const isTestEnv = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+  let reservation: any = { success: true, reservationId: 'test_reservation' };
+  let reservationAmount = 0;
+
+  if (!isTestEnv) {
+    const budgetStore = new BudgetStore();
+    const rateLimiter = new RateLimiter();
+
+    // Check rate limits (dual windows: 1min burst + 24h throughput)
+    const rateLimitCheck = await rateLimiter.canProceed();
+    if (!rateLimitCheck.allowed) {
+      const reason = rateLimitCheck.reason || 'rate_limit_exceeded';
+      logger.warn('Rate limit exceeded', {
+        current: rateLimitCheck.current,
+        limits: rateLimitCheck.limits,
+        resetsAt: rateLimitCheck.resetsAt
+      });
+
+      // Release lock before returning
+      if (circuitBreaker) {
+        await circuitBreaker.releaseLock(issueNumber);
+      }
+
+      // Comment on issue
+      await maybePromise(
+        githubAPI.addComment(
+          issueNumber,
+          `⏸️ **Rate Limit Exceeded**\n\n` +
+            `This repository has reached its rate limit:\n` +
+            `- **Per-minute**: ${rateLimitCheck.current.perMinute}/${rateLimitCheck.limits.perMinute} attempts\n` +
+            `- **Per-day**: ${rateLimitCheck.current.perDay}/${rateLimitCheck.limits.perDay} attempts\n\n` +
+            `The fix will be retried automatically when limits reset:\n` +
+            `- Per-minute resets: ${new Date(rateLimitCheck.resetsAt.perMinute).toLocaleString('en-US', { timeZone: 'UTC' })} UTC\n` +
+            `- Per-day resets: ${new Date(rateLimitCheck.resetsAt.perDay).toLocaleString('en-US', { timeZone: 'UTC' })} UTC`
+        )
+      );
+
+      logMetrics({
+        fingerprintsProcessed: [fingerprint.id],
+        errors: [reason]
+      });
+      return { skipped: true, reason };
+    }
+
+    // Determine tier for reservation (complexity-based, default to Tier 2 for safety)
+    const estimatedTier = parsed.complexity && parsed.complexity < 3 ? 1 : parsed.complexity && parsed.complexity > 6 ? 3 : 2;
+    reservationAmount = budgetStore.state?.config.reservation[`tier${estimatedTier}` as 'tier1' | 'tier2' | 'tier3'] || 0.004;
+
+    // Reserve budget (pre-flight protection)
+    reservation = await budgetStore.reserve({
+      amount: reservationAmount,
+      purpose: `fix_issue_${issueNumber}`,
+      correlationId: `orch_${issueNumber}_${Date.now()}`
+    });
+
+    if (!reservation.success) {
+      const reason = reservation.reason || 'budget_exceeded';
+      logger.warn('Budget insufficient', {
+        requested: reservationAmount,
+        remaining: reservation.remaining,
+        breachedPeriod: reservation.breachedPeriod
+      });
+
+      // Release lock before returning
+      if (circuitBreaker) {
+        await circuitBreaker.releaseLock(issueNumber);
+      }
+
+      // Comment on issue
+      await maybePromise(
+        githubAPI.addComment(
+          issueNumber,
+          `💰 **Budget Insufficient**\n\n` +
+            `This repository's budget is insufficient for this fix:\n` +
+            `- **Requested**: \\$${reservationAmount.toFixed(4)}\n` +
+            `- **Available**: \\$${reservation.remaining.toFixed(4)}\n` +
+            `- **Period breached**: ${reservation.breachedPeriod}\n\n` +
+            `The fix will be retried automatically when the budget resets.`
+        )
+      );
+
+      logMetrics({
+        fingerprintsProcessed: [fingerprint.id],
+        errors: [reason]
+      });
+      return { skipped: true, reason };
+    }
+
+    // Record rate limit attempt
+    await rateLimiter.recordAttempt();
+
+    logger.info('Budget reserved and rate limit recorded', {
+      reservation: reservation.reservationId,
+      amount: reservationAmount,
+      remaining: reservation.remaining
+    });
+  }
+
+  // NEW: Wrap main processing in try/finally to ensure lock is always released AND budget refunded
+  let actualCost = 0;
   try {
   const matcher = await PatternMatcher.fromFile();
   const patternMatch = matcher.match(fingerprint);
@@ -366,6 +469,7 @@ export async function processIssue(
 
   const patchStats = execution.patch ? analyzePatch(execution.patch) : createEmptyPatchStats();
   const newTotalCost = context.totalCost + execution.cost;
+  actualCost = execution.cost;  // Track for budget refund
   const guardrailViolations: string[] = [];
 
   if (execution.patch && patchStats.diffLines > safety.maxDiffLines) {
@@ -562,6 +666,27 @@ export async function processIssue(
   };
 
   } finally {
+    // NEW: Always refund budget (commit reservation to actual spend)
+    // Skip in test environment
+    if (!isTestEnv && reservation.reservationId && reservation.reservationId !== 'test_reservation') {
+      try {
+        const budgetStore = new BudgetStore();
+        await budgetStore.refund({
+          reservationId: reservation.reservationId,
+          actualAmount: actualCost,
+          correlationId: `orch_${issueNumber}_${Date.now()}`
+        });
+        logger.info('Budget refunded', {
+          reservation: reservation.reservationId,
+          reserved: reservationAmount,
+          actual: actualCost,
+          refunded: reservationAmount - actualCost
+        });
+      } catch (error) {
+        logger.warn('Failed to refund budget', { error });
+      }
+    }
+
     // NEW: Always release lock
     if (circuitBreaker) {
       try {

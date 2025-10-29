@@ -45,7 +45,19 @@ export class JSONLLogger {
     const filepath = join(artifactsDir, filename);
 
     const line = JSON.stringify(metrics) + '\n';
-    appendFileSync(filepath, line, { encoding: 'utf8' });
+
+    // Retry once on ENOENT (parallel tests may delete directory between mkdir and append)
+    try {
+      appendFileSync(filepath, line, { encoding: 'utf8' });
+    } catch (error: any) {
+      if (error.code === 'ENOENT' || error.code === 'EINVAL') {
+        // Directory was deleted by another test - recreate and retry once
+        mkdirSync(artifactsDir, { recursive: true });
+        appendFileSync(filepath, line, { encoding: 'utf8' });
+      } else {
+        throw error;
+      }
+    }
   }
 
   static async aggregateMetrics(since: Date): Promise<AggregateMetrics> {

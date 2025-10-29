@@ -39,3 +39,6 @@ temp/
 
 # Benchmark results (keep directory with .gitkeep)
 benches/results/*.json
+
+# Runtime state (git-persisted in production, not in development)
+.homeostat/state/
