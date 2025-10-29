@@ -13,6 +13,14 @@ env:
   MAX_DIFF_LINES: 500
   MAX_FILES: 10
   MAX_RUN_COST: 1.0
+  # Budget enforcement (Phase 1A)
+  DAILY_BUDGET_CAP: "0.066"
+  WEEKLY_BUDGET_CAP: "0.33"
+  MONTHLY_BUDGET_CAP: "1.0"
+
+concurrency:
+  group: budget-homeostat-multi-repo
+  cancel-in-progress: false
 
 jobs:
   orchestrate:
