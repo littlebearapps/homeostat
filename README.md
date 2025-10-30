@@ -2,7 +2,7 @@
 
 **An agentic fix pipeline that restores your repo to a steady, healthy state**
 
-Homeostat is an automated error-fixing system that uses AI to detect, analyze, and repair bugs in your codebase. It integrates with GitHub Projects and uses a multi-tier AI strategy (DeepSeek V3.2-Exp + GPT-5) to fix errors automatically.
+Homeostat is an automated error-fixing system that uses AI to detect, analyze, and repair bugs across multiple platforms. It integrates with GitHub Projects and uses a multi-tier AI strategy (DeepSeek V3.2-Exp + GPT-5) to fix errors automatically in Chrome extensions, WordPress plugins, and VPS tools.
 
 ## Features
 
@@ -12,7 +12,8 @@ Homeostat is an automated error-fixing system that uses AI to detect, analyze, a
 - 📊 **Multi-Tier Strategy**: 70% DeepSeek (cheap) + 25% hybrid + 5% GPT-5 (complex)
 - 🔄 **Smart Retry Logic**: 2-attempt strategy with deterministic failure detection
 - ✅ **Test-Gated**: Only merges fixes that pass test suite
-- 🏢 **Multi-Repository Support**: Single Homeostat deployment orchestrates fixes across Convert My File, NoteBridge, and Palette Kit
+- 🏢 **Multi-Platform Support**: Fixes errors across Chrome extensions, WordPress plugins, and VPS tools
+- 🎯 **Dual Parser Architecture**: Routes extension vs server formats automatically via source labels
 - 🩹 **Self-Healing Pattern Library**: Feature-flagged learning captures successful patches and replays zero-cost fixes once confidence exceeds 80%
 - 📈 **Enhanced Observability**: GitHub Action summaries, JSONL telemetry artifacts, and guardrail metrics keep automation accountable
 - 🔐 **Atomic Circuit Breaker**: ETag-based locking prevents duplicate PRs when concurrent triggers (scheduled + webhook) fire simultaneously
@@ -24,29 +25,49 @@ Homeostat receives errors from [CloakPipe](https://github.com/littlebearapps/clo
 
 ### How It Works
 
-1. **CloakPipe** captures error in Chrome extension → sanitizes PII → creates GitHub issue with `robot` label
-2. **Homeostat** (triggered by `robot` label) → analyzes complexity → selects AI tier → attempts fix
-3. **Validation** → runs test suite → creates PR if tests pass → comments on issue with results
+1. **CloakPipe** captures error → sanitizes PII → creates GitHub issue with `robot` label
+2. **Homeostat** (triggered by `robot` label) → routes to parser based on source → analyzes complexity → selects AI tier
+3. **Validation** → runs test suite → creates PR if tests pass → comments with results
 
 ### Expected Issue Format
 
-CloakPipe creates issues in a specific format that Homeostat parses. **See [docs/CLOAKPIPE-INTEGRATION.md](docs/CLOAKPIPE-INTEGRATION.md) for the complete integration contract**, including:
+CloakPipe creates issues in platform-specific formats. **See [docs/CLOAKPIPE-INTEGRATION.md](docs/CLOAKPIPE-INTEGRATION.md) for complete details.**
 
-- Exact issue title and body format
-- Required fields (stack trace, error type, fingerprint, breadcrumbs)
-- Parsing logic with code examples
-- Privacy validation
-- Error handling strategies
+**Chrome Extensions** (section format):
+```markdown
+Title: [NoteBridge] TypeError: Cannot read property 'sync' of undefined
+Labels: robot, source:cloakpipe
 
-**Example Issue Title**: `[NoteBridge] TypeError: Cannot read property 'sync' of undefined`
+## Error Details
+- Extension: NoteBridge v1.2.0
+- Fingerprint: abc123
 
-**Required Labels**: `robot` (triggers Homeostat), extension name (e.g., `notebridge`)
+## Stack Trace
+(code block)
 
-**Critical Fields Homeostat Uses**:
-- **Stack trace** - Error location and call chain (PII sanitized by CloakPipe)
-- **Breadcrumbs** - User actions leading to error (max 50)
-- **Error fingerprint** - Hash for deduplication (same error = same fingerprint)
-- **Extension metadata** - Version, error type, timestamp
+## Breadcrumbs
+1. User clicked button
+```
+
+**WordPress/VPS** (section + bullet format):
+```markdown
+Title: [wp-navigator-pro] PDOException: Database connection failed
+Labels: robot, source:wordpress
+
+## Error Details
+- Product: wp-navigator-pro v2.0.0
+- Error Type: PDOException
+- Message: Database connection failed
+- Fingerprint: def456
+- Occurrences: 3/3
+
+## Stack Trace
+(code block)
+```
+
+**Parser Routing**:
+- `source:wordpress` or `source:vps` → parseServerIssue() (bullet format)
+- `source:cloakpipe` or default → parseExtensionIssue() (section format)
 
 ## Architecture
 
