@@ -29,3 +29,23 @@ repositories:
       exclude: [tests/, docs/]
     test_command: npm test
     confidence_threshold: 0.8
+
+  - slug: littlebearapps/wp-navigator-pro
+    branch: main
+    max_prs_per_run: 2
+    labels: [homeostat-fix, wp-navigator-pro]
+    path_filters:
+      include: [src/, includes/, assets/]
+      exclude: [tests/, docs/]
+    test_command: npm test
+    confidence_threshold: 0.8
+
+  - slug: littlebearapps/wp-navigator-lite
+    branch: main
+    max_prs_per_run: 2
+    labels: [homeostat-fix, wp-navigator-lite]
+    path_filters:
+      include: [src/, includes/, assets/]
+      exclude: [tests/, docs/]
+    test_command: npm test
+    confidence_threshold: 0.8

@@ -13,7 +13,7 @@
 
 **Objective**: Extend Homeostat to support CloakPipe's multi-platform expansion:
 - ✅ **Chrome Extensions** (existing, 100% backward compatible)
-- 🆕 **WordPress Plugin** (`claudecode-wordpress-mcp` - matches GitHub repo name)
+- 🆕 **WordPress Plugin** (`wp-navigator-pro`, `wp-navigator-lite` - renamed from `claudecode-wordpress-mcp`)
 - 🆕 **VPS Tools** (Brand Copilot: `brand-copilot`, Auditor Toolkit: `auditor-toolkit`)
 - 🆕 **Cross-Browser** (Firefox, Safari, Edge - 100% compatible with existing parser)
 
@@ -61,10 +61,12 @@
 **Format**: `[{product}] {errorType}: {summary}` (exact match with Chrome extensions)
 
 **Product Names**:
-- WordPress: `[claudecode-wordpress-mcp]` (matches GitHub repo name)
-- VPS Brand Copilot: `[brand-copilot]` (matches GitHub repo name)
-- VPS Auditor Toolkit: `[auditor-toolkit]` (matches GitHub repo name)
-- Chrome extensions: `[convert-my-file]`, `[notebridge]`, `[palette-kit]`
+- **WordPress Pro**: `[wp-navigator-pro]` (matches repo: `littlebearapps/wp-navigator-pro`)
+- **WordPress Lite**: `[wp-navigator-lite]` (matches repo: `littlebearapps/wp-navigator-lite`)
+- **WordPress (deprecated)**: `[claudecode-wordpress-mcp]` (redirects to `wp-navigator-pro` for backward compat)
+- **VPS Brand Copilot**: `[brand-copilot]` (matches GitHub repo name)
+- **VPS Auditor Toolkit**: `[auditor-toolkit]` (matches GitHub repo name)
+- **Chrome extensions**: `[convert-my-file]`, `[notebridge]`, `[palette-kit]`
 
 **ErrorType Examples**:
 - WordPress: `PDOException`, `RuntimeException`, `WP_Error`
@@ -74,10 +76,14 @@
 
 **Title Examples**:
 ```
-[claudecode-wordpress-mcp] PDOException: Database connection failed
+[wp-navigator-pro] PDOException: Database connection failed
+[wp-navigator-lite] TypeError: Cannot read property 'menuItems' of undefined
 [brand-copilot] UnhandledRejection: ECONNREFUSED
 [auditor-toolkit] ValueError: Invalid CSV format
 [convert-my-file] TypeError: Cannot read property 'data' of undefined
+
+# Backward compatibility (deprecated, redirects to wp-navigator-pro)
+[claudecode-wordpress-mcp] PDOException: Database connection failed
 ```
 
 ### ErrorType Extraction Logic ✅ CONFIRMED
@@ -161,12 +167,14 @@ ECONNREFUSED: Connection refused at 127.0.0.1:3306
 
 **Preserved Template**: ✅ All sections unchanged (`## Error Details`, `## Stack Trace`, `## Breadcrumbs`)
 
-### Product Naming Convention ✅ CONFIRMED
+### Product Naming Convention ✅ CONFIRMED (Updated)
 
 **Product IDs match GitHub repository names** for uniformity:
 
 ```yaml
-- WordPress: claudecode-wordpress-mcp  # Matches repo: littlebearapps/claudecode-wordpress-mcp
+- WordPress Pro: wp-navigator-pro       # Matches repo: littlebearapps/wp-navigator-pro
+- WordPress Lite: wp-navigator-lite     # Matches repo: littlebearapps/wp-navigator-lite
+- WordPress (deprecated): claudecode-wordpress-mcp  # Redirects to wp-navigator-pro
 - Brand Copilot: brand-copilot         # Matches repo: littlebearapps/brand-copilot
 - Auditor Toolkit: auditor-toolkit     # Matches repo: littlebearapps/auditor-toolkit
 - Extensions: convert-my-file, notebridge, palette-kit
@@ -175,11 +183,16 @@ ECONNREFUSED: Connection refused at 127.0.0.1:3306
 **Homeostat Usage**:
 ```typescript
 // Parse issue title
-const issueTitle = "[claudecode-wordpress-mcp] PDOException: Database error";
-const productId = parseTitle(issueTitle); // "claudecode-wordpress-mcp"
+const issueTitle = "[wp-navigator-pro] PDOException: Database error";
+const productId = parseTitle(issueTitle); // "wp-navigator-pro"
 
-// Construct repo name (product ID matches repo name)
-const repoName = `littlebearapps/${productId}`; // "littlebearapps/claudecode-wordpress-mcp"
+// Product-to-repo mapping (from .homeostat/repos.yml)
+const repoName = `littlebearapps/${productId}`; // "littlebearapps/wp-navigator-pro"
+
+// Backward compatibility for old product name
+if (productId === 'claudecode-wordpress-mcp') {
+  repoName = 'littlebearapps/wp-navigator-pro'; // Redirect to Pro version
+}
 
 // Create PR in correct repo
 await createPR(repoName, fixContent);
@@ -203,10 +216,11 @@ Homeostat currently supports Chrome extensions only:
 
 CloakPipe is expanding to support:
 
-1. **WordPress Plugin** (`claudecode-wordpress-mcp`)
+1. **WordPress Plugins** (`wp-navigator-pro`, `wp-navigator-lite`)
    - Server-side PHP errors
    - WordPress-specific metadata (plugin version, WP version)
    - Inline template format: `**Field:** value`
+   - **Note**: Renamed from `claudecode-wordpress-mcp` (backward compat maintained)
 
 2. **VPS Tools**
    - Brand Copilot (Node.js, daily cron)
@@ -418,11 +432,12 @@ const errorType = parseInlineField(body, 'Error Type');
 **Status**: ✅ **COMPLETE** (2025-10-29)
 
 **Tasks**:
-- [x] Create 3 new GitHub repositories
-  - `littlebearapps/claudecode-wordpress-mcp` (private) ✅ (Service Registry ID: `claudecode-wordpress-mcp`)
+- [x] Create GitHub repositories ✅
+  - `littlebearapps/wp-navigator-pro` (private) ✅ (renamed from `claudecode-wordpress-mcp`)
+  - `littlebearapps/wp-navigator-lite` (private) ✅ (new)
   - `littlebearapps/brand-copilot` (private) ✅
   - `littlebearapps/auditor-toolkit` (private) ✅
-- [x] Configure GitHub Secrets (9 total: 3 repos × 3 secrets) ✅
+- [x] Configure GitHub Secrets (all repos × 3 secrets each) ✅
   - `HOMEOSTAT_DEEPSEEK_API_KEY` in all 3 repos
   - `HOMEOSTAT_OPENAI_API_KEY` in all 3 repos
   - `HOMEOSTAT_PAT` in all 3 repos
@@ -433,7 +448,8 @@ const errorType = parseInlineField(body, 'Error Type');
 - [x] Grant Homeostat PAT access ✅
   - Settings → Actions → General → Workflow permissions → Read and write
 - [x] Add to Platform Service Registry ✅
-  - Added 2 services: `claudecode-wordpress-mcp`, `auditor-toolkit-github`
+  - Added services: `wp-navigator-pro`, `wp-navigator-lite`, `auditor-toolkit-github`
+  - Deprecated: `claudecode-wordpress-mcp` (redirects to `wp-navigator-pro`)
 - [x] Send confirmation questions to CloakPipe ✅
   - WordPress/VPS issue title format → CONFIRMED
   - ErrorType extraction logic → CONFIRMED (native exception class names)
@@ -644,11 +660,11 @@ git push -u origin feature/multi-platform-support
 
 **Actions**:
 ```bash
-# For each repo: claudecode-wordpress-mcp, brand-copilot, auditor-toolkit
+# For each repo: wp-navigator-pro, wp-navigator-lite, brand-copilot, auditor-toolkit
 
-# 1. Clone repo
-git clone git@github.com:littlebearapps/claudecode-wordpress-mcp.git
-cd claudecode-wordpress-mcp
+# 1. Clone repo (example: wp-navigator-pro)
+git clone git@github.com:littlebearapps/wp-navigator-pro.git
+cd wp-navigator-pro
 
 # 2. Copy Homeostat workflow
 mkdir -p .github/workflows

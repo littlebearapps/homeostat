@@ -161,12 +161,15 @@ User was trying to sync notes when the error occurred.
 ```
 
 **Examples**:
-- `[claudecode-wordpress-mcp] PDOException: Database connection failed`
+- `[wp-navigator-pro] PDOException: Database connection failed`
+- `[wp-navigator-lite] TypeError: Cannot read property 'menuItems' of undefined`
 - `[brand-copilot] UnhandledRejection: ECONNREFUSED`
 - `[auditor-toolkit] ValueError: Invalid CSV format`
 
 **Product Names**:
-- `claudecode-wordpress-mcp` - WordPress plugin (matches GitHub repo name)
+- `wp-navigator-pro` - WordPress Pro plugin (matches repo: `littlebearapps/wp-navigator-pro`)
+- `wp-navigator-lite` - WordPress Lite plugin (matches repo: `littlebearapps/wp-navigator-lite`)
+- `claudecode-wordpress-mcp` - **DEPRECATED** (redirects to `wp-navigator-pro` for backward compat)
 - `brand-copilot` - VPS Brand Copilot tool (matches GitHub repo name)
 - `auditor-toolkit` - VPS Auditor Toolkit (matches GitHub repo name)
 
@@ -324,7 +327,8 @@ Homeostat **requires** these fields to function:
 
 **Servers**:
 - Format: `**Product:** ProductName` OR extracted from title
-- Examples: `claudecode-wordpress-mcp`, `brand-copilot`, `auditor-toolkit`
+- Examples: `wp-navigator-pro`, `wp-navigator-lite`, `brand-copilot`, `auditor-toolkit`
+- Deprecated: `claudecode-wordpress-mcp` (redirects to `wp-navigator-pro`)
 - Parsing: Use `parseInlineField(body, 'Product')` OR title extraction
 
 #### Error Type (required)
