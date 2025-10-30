@@ -1,11 +1,14 @@
 # CLAUDE.md - Homeostat
 
 ## Overview
-Homeostat is an agentic fix pipeline that restores your repo to a steady, healthy state. Uses multi-tier AI (DeepSeek V3.2-Exp + GPT-5) to automatically detect, analyze, and repair bugs in Chrome extensions.
+Homeostat is an agentic fix pipeline that restores your repo to a steady, healthy state. Uses multi-tier AI (DeepSeek V3.2-Exp + GPT-5) to automatically detect, analyze, and repair bugs across multiple platforms.
 
 **Annual Cost**: $9.28/year (1,000 fixes with retry logic)
-**Target Extensions**: NoteBridge, PaletteKit, ConvertMyFile
-**Architecture**: 3-tier privacy-first system validated by GPT-5
+**Target Platforms**:
+- Chrome Extensions: NoteBridge, PaletteKit, ConvertMyFile
+- WordPress Plugins: WP Navigator Pro, WP Navigator Lite
+- VPS Tools: Brand Copilot, Auditor Toolkit
+**Architecture**: 3-tier privacy-first system with dual parser (extensions + servers)
 
 ## Key Files
 - `CLAUDE.md` - This file
@@ -48,23 +51,43 @@ jobs:
 **See [docs/CLOAKPIPE-INTEGRATION.md](docs/CLOAKPIPE-INTEGRATION.md) for the complete integration contract.**
 
 **Quick Summary**:
-- **Title**: `[ExtensionName] ErrorType: Error message`
-- **Labels**: `robot` (required), extension name (e.g., `notebridge`)
-- **Body Sections**: Error Details, Stack Trace, Breadcrumbs, User Description (optional)
+- **Title**: `[ProductName] ErrorType: Error message`
+- **Labels**: `robot` (required), `source:wordpress|vps|cloakpipe` (for routing)
+- **Body Format**:
+  - Extensions: Section format (`## Error Details`, `## Stack Trace`, `## Breadcrumbs`)
+  - Servers: Section + bullet format (`## Error Details` with `- Field: value`)
 
-**Required Fields for Homeostat**:
-- Stack trace (PII sanitized by logger)
-- Error type (for tier selection)
-- Fingerprint (for deduplication)
-- Breadcrumbs (user actions leading to error)
-- Extension metadata (version, timestamp)
+**WordPress/VPS Format** (section + bullets):
+```markdown
+## Error Details
+- Product: wp-navigator-pro v2.0.0
+- Error Type: PDOException
+- Message: Database connection failed
+- Fingerprint: abc123
+- Occurrences: 3/3
 
-**Example Parsing**:
-```javascript
-const { extensionName, errorType } = parseIssueTitle(issue.title);
-const { stackTrace, breadcrumbs, fingerprint } = parseIssueBody(issue.body);
-// Use data for complexity analysis and fix generation
+## Stack Trace
+(code block)
 ```
+
+**Extension Format** (sections):
+```markdown
+## Error Details
+- Extension: NoteBridge v1.2.0
+- Error Type: TypeError
+- Fingerprint: def456
+
+## Stack Trace
+(code block)
+
+## Breadcrumbs
+1. User action
+```
+
+**Parser Routing**:
+- `source:wordpress` → parseServerIssue() (bullet format)
+- `source:vps` → parseServerIssue() (bullet format)
+- `source:cloakpipe` or default → parseExtensionIssue() (section format)
 
 ## 📖 Global Instructions
 
