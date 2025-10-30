@@ -2,6 +2,15 @@ name: Fix Error (Reusable)
 
 on:
   workflow_call:
+    inputs:
+      issue_number:
+        description: 'Issue number from calling repository'
+        required: true
+        type: number
+      repository:
+        description: 'Repository name (owner/repo)'
+        required: true
+        type: string
     secrets:
       HOMEOSTAT_DEEPSEEK_API_KEY:
         required: true
@@ -19,7 +28,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: homeostat-fix-${{ github.event.issue.number }}
+  group: homeostat-fix-${{ inputs.issue_number }}
   cancel-in-progress: false
 
 jobs:
@@ -38,7 +47,7 @@ jobs:
       - name: Checkout Target Repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}
+          repository: ${{ inputs.repository }}
           token: ${{ secrets.HOMEOSTAT_PAT }}
           path: target-repo
           fetch-depth: 0
@@ -57,7 +66,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
         run: |
-          gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }} > issue.json
+          gh api repos/${{ inputs.repository }}/issues/${{ inputs.issue_number }} > issue.json
 
           # Extract issue details
           TITLE=$(jq -r '.title' issue.json)
@@ -75,8 +84,8 @@ jobs:
         working-directory: homeostat
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
-          TARGET_REPO: ${{ github.repository }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          TARGET_REPO: ${{ inputs.repository }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
         run: |
           node homeostat/routing/complexity-analyzer.js \
             --repo="${TARGET_REPO}" \
@@ -89,8 +98,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
           DEEPSEEK_API_KEY: ${{ secrets.HOMEOSTAT_DEEPSEEK_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.HOMEOSTAT_OPENAI_API_KEY }}
-          TARGET_REPO: ${{ github.repository }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          TARGET_REPO: ${{ inputs.repository }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
           HOMEOSTAT_ENV: production
         run: |
           node homeostat/execution/tier1-fix.js \
@@ -105,8 +114,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
           DEEPSEEK_API_KEY: ${{ secrets.HOMEOSTAT_DEEPSEEK_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.HOMEOSTAT_OPENAI_API_KEY }}
-          TARGET_REPO: ${{ github.repository }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          TARGET_REPO: ${{ inputs.repository }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
           HOMEOSTAT_ENV: production
         run: |
           node homeostat/execution/tier2-fix.js \
@@ -120,8 +129,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
           OPENAI_API_KEY: ${{ secrets.HOMEOSTAT_OPENAI_API_KEY }}
-          TARGET_REPO: ${{ github.repository }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          TARGET_REPO: ${{ inputs.repository }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
           HOMEOSTAT_ENV: production
         run: |
           node homeostat/execution/tier3-fix.js \
@@ -148,7 +157,7 @@ jobs:
           GH_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
         run: |
           # Increment hop count
-          CURRENT_HOP=$(gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }} \
+          CURRENT_HOP=$(gh api repos/${{ inputs.repository }}/issues/${{ inputs.issue_number }} \
             --jq '.labels[] | select(.name | startswith("hop:")) | .name' | sed 's/hop://')
 
           if [ -z "$CURRENT_HOP" ]; then
@@ -159,11 +168,11 @@ jobs:
 
           # Remove old hop label
           gh api --method DELETE \
-            repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels/hop:${CURRENT_HOP} || true
+            repos/${{ inputs.repository }}/issues/${{ inputs.issue_number }}/labels/hop:${CURRENT_HOP} || true
 
           # Add new hop label
           gh api --method POST \
-            repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/labels \
+            repos/${{ inputs.repository }}/issues/${{ inputs.issue_number }}/labels \
             -f labels[]="hop:${NEXT_HOP}"
 
       - name: Comment on Issue
@@ -179,7 +188,7 @@ jobs:
             MESSAGE="⚠️ Homeostat Tier ${TIER} fix encountered issues. Status: ${JOB_STATUS}. See workflow logs for details."
           fi
 
-          gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
+          gh api repos/${{ inputs.repository }}/issues/${{ inputs.issue_number }}/comments \
             -f body="${MESSAGE}"
 
       - name: Cleanup Artifacts
