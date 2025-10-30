@@ -151,23 +151,32 @@ export function parseServerIssue(issue = {}) {
     errors.push('Issue body exceeds 100KB limit');
   }
 
-  // Parse inline fields (WordPress/VPS format)
-  const product = parseInlineField(body, 'Product') || titleData.extension || '';
-  const occurrencesStr = parseInlineField(body, 'Occurrences') || '1';
-  const occurrences = parseInt(occurrencesStr, 10) || 1; // Handle NaN
-  const fingerprint = parseInlineField(body, 'Fingerprint');
-  const location = parseInlineField(body, 'Location');
-  const job = parseInlineField(body, 'Job'); // VPS cron job name
-  const timestamp = parseInlineField(body, 'Timestamp');
-  const version = parseInlineField(body, 'Version') ||
-                  parseInlineField(body, 'Plugin Version') ||
-                  parseInlineField(body, 'Tool Version');
-  const environment = parseInlineField(body, 'Environment');
-
-  // Extract stack trace and context from sections
+  // Extract sections first (CloakPipe format uses section headers)
+  const errorDetailsSection = extractSection(body, '## Error Details');
   const messageSection = extractSection(body, '## Error Message');
   const stackSection = extractSection(body, '## Stack Trace');
   const contextSection = extractSection(body, '## Context');
+  const phpEnvSection = extractSection(body, '## PHP Environment');
+
+  // Parse fields from ## Error Details section using bullet list format (- Field: value)
+  const product = parseField(errorDetailsSection, 'Product') || titleData.extension || '';
+  const messageField = parseField(errorDetailsSection, 'Message'); // Primary error message source
+  const occurrencesStr = parseField(errorDetailsSection, 'Occurrences') || '1';
+  const occurrences = parseInt(occurrencesStr, 10) || 1; // Handle NaN
+  const fingerprint = parseField(errorDetailsSection, 'Fingerprint');
+  const timestamp = parseField(errorDetailsSection, 'Timestamp');
+  const environment = parseField(errorDetailsSection, 'Environment');
+
+  // Parse version from multiple possible fields
+  const version = parseField(errorDetailsSection, 'Version') ||
+                  parseField(errorDetailsSection, 'Plugin Version') ||
+                  parseField(errorDetailsSection, 'Tool Version');
+
+  // Parse PHP Environment section (for WordPress)
+  const location = parseField(phpEnvSection, 'File') || parseField(errorDetailsSection, 'Location');
+
+  // Parse VPS-specific fields from Error Details
+  const job = parseField(errorDetailsSection, 'Job'); // VPS cron job name
 
   const rawStack = extractCodeBlock(stackSection);
   const sanitizedStack = sanitizeStackTrace(rawStack);
@@ -185,8 +194,8 @@ export function parseServerIssue(issue = {}) {
     product,
     version,
     errorType: titleData.errorType || '',
-    errorMessage: titleData.errorMessage || messageSection || '',
-    message: messageSection || titleData.errorMessage || '',
+    errorMessage: messageField || titleData.errorMessage || messageSection || '',
+    message: messageField || messageSection || titleData.errorMessage || '',
     timestamp,
     fingerprint,
     stackTrace: sanitizedStack,

@@ -4,12 +4,12 @@
     "attempts": 1,
     "history": [
       {
-        "timestamp": "2025-10-30T00:24:40.026Z",
+        "timestamp": "2025-10-30T00:43:25.801Z",
         "success": false
       }
     ],
-    "lastAttempt": "2025-10-30T00:24:40.026Z",
-    "cooldownUntil": "2025-10-31T00:24:40.026Z",
+    "lastAttempt": "2025-10-30T00:43:25.801Z",
+    "cooldownUntil": "2025-10-31T00:43:25.801Z",
     "exhausted": false
   },
   {
@@ -17,11 +17,11 @@
     "attempts": 0,
     "history": [
       {
-        "timestamp": "2025-10-30T00:24:40.193Z",
+        "timestamp": "2025-10-30T00:43:25.944Z",
         "success": true
       }
     ],
-    "lastAttempt": "2025-10-30T00:24:40.193Z",
+    "lastAttempt": "2025-10-30T00:43:25.944Z",
     "exhausted": false
   },
   {
@@ -29,11 +29,11 @@
     "attempts": 0,
     "history": [
       {
-        "timestamp": "2025-10-30T00:24:40.199Z",
+        "timestamp": "2025-10-30T00:43:25.950Z",
         "success": true
       }
     ],
-    "lastAttempt": "2025-10-30T00:24:40.199Z",
+    "lastAttempt": "2025-10-30T00:43:25.950Z",
     "exhausted": false
   },
   {
@@ -41,11 +41,11 @@
     "attempts": 0,
     "history": [
       {
-        "timestamp": "2025-10-30T00:24:40.471Z",
+        "timestamp": "2025-10-30T00:43:26.271Z",
         "success": true
       }
     ],
-    "lastAttempt": "2025-10-30T00:24:40.471Z",
+    "lastAttempt": "2025-10-30T00:43:26.271Z",
     "exhausted": false
   },
   {
@@ -53,11 +53,11 @@
     "attempts": 0,
     "history": [
       {
-        "timestamp": "2025-10-30T00:24:40.477Z",
+        "timestamp": "2025-10-30T00:43:26.276Z",
         "success": true
       }
     ],
-    "lastAttempt": "2025-10-30T00:24:40.477Z",
+    "lastAttempt": "2025-10-30T00:43:26.276Z",
     "exhausted": false
   },
   {
@@ -65,11 +65,11 @@
     "attempts": 0,
     "history": [
       {
-        "timestamp": "2025-10-30T00:24:40.479Z",
+        "timestamp": "2025-10-30T00:43:26.279Z",
         "success": true
       }
     ],
-    "lastAttempt": "2025-10-30T00:24:40.479Z",
+    "lastAttempt": "2025-10-30T00:43:26.279Z",
     "exhausted": false
   },
   {
@@ -77,11 +77,11 @@
     "attempts": 0,
     "history": [
       {
-        "timestamp": "2025-10-30T00:24:40.480Z",
+        "timestamp": "2025-10-30T00:43:26.282Z",
         "success": true
       }
     ],
-    "lastAttempt": "2025-10-30T00:24:40.480Z",
+    "lastAttempt": "2025-10-30T00:43:26.282Z",
     "exhausted": false
   },
   {
@@ -89,12 +89,12 @@
     "attempts": 1,
     "history": [
       {
-        "timestamp": "2025-10-30T00:24:54.943Z",
+        "timestamp": "2025-10-30T00:43:38.740Z",
         "success": false
       }
     ],
-    "lastAttempt": "2025-10-30T00:24:54.943Z",
-    "cooldownUntil": "2025-10-31T00:24:54.943Z",
+    "lastAttempt": "2025-10-30T00:43:38.740Z",
+    "cooldownUntil": "2025-10-31T00:43:38.740Z",
     "exhausted": false
   }
 ]

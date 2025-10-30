@@ -148,24 +148,21 @@ describe('Synthetic Breadcrumb Generation', () => {
 });
 
 describe('WordPress Issue Parsing', () => {
-  it('parses WordPress issue with inline format', () => {
+  it('parses WordPress issue with CloakPipe format (section + bullets)', () => {
     const issue = {
       title: '[claudecode-wordpress-mcp] PDOException: Database connection failed',
       labels: [{ name: 'robot' }, { name: 'source:wordpress' }],
       number: 123,
       html_url: 'https://github.com/test/repo/issues/123',
-      body: `**Error Type:** PDOException
-**Occurrences:** 3
-**Site Hash:** abc123def456
-**PHP Version:** 8.1.0
-**WordPress Version:** 6.4.0
-**Plugin Version:** 1.0.0
-**Timestamp:** 2025-10-29T12:34:56Z
-**Environment:** production
-**Fingerprint:** db-conn-fail-wp-123
-
-## Error Message
-Database connection failed: SQLSTATE[HY000] [2002] Connection refused
+      body: `## Error Details
+- Product: claudecode-wordpress-mcp v1.0.0
+- Error Type: PDOException
+- Message: Database connection failed
+- Environment: production
+- Occurrences: 3/3 (threshold reached)
+- Timestamp: 2025-10-29T12:34:56Z
+- Fingerprint: db-conn-fail-wp-123
+- Site: abc123def456 (hashed)
 
 ## Stack Trace
 \`\`\`
@@ -174,6 +171,11 @@ PDOException: SQLSTATE[HY000] [2002] Connection refused
   at includes/backup.php:120
 \`\`\`
 
+## PHP Environment
+- Runtime: php
+- File: includes/database.php
+- Line: 45
+
 ## Context
 User initiated backup operation`
     };
@@ -181,36 +183,33 @@ User initiated backup operation`
     const result = parseServerIssue(issue);
 
     expect(result.errors).toHaveLength(0);
-    expect(result.parsed.product).toBe('claudecode-wordpress-mcp');
+    expect(result.parsed.product).toBe('claudecode-wordpress-mcp v1.0.0');
     expect(result.parsed.errorType).toBe('PDOException');
     expect(result.parsed.errorMessage).toBe('Database connection failed');
     expect(result.parsed.occurrences).toBe(3);
     expect(result.parsed.fingerprint).toBe('db-conn-fail-wp-123');
-    expect(result.parsed.version).toBe('1.0.0');
     expect(result.parsed.environment).toBe('production');
     expect(result.parsed.stackTrace).toContain('includes/database.php:45');
+    expect(result.parsed.location).toBe('includes/database.php');
     expect(result.parsed.breadcrumbs.length).toBeGreaterThan(0);
     expect(result.parsed.source).toBe('wordpress');
   });
 
-  it('parses wp-navigator-pro issue with inline format', () => {
+  it('parses wp-navigator-pro issue with CloakPipe format', () => {
     const issue = {
       title: '[wp-navigator-pro] PDOException: Database connection failed',
       labels: [{ name: 'robot' }, { name: 'source:wordpress' }],
       number: 124,
       html_url: 'https://github.com/test/repo/issues/124',
-      body: `**Error Type:** PDOException
-**Occurrences:** 5
-**Site Hash:** xyz789abc123
-**PHP Version:** 8.2.0
-**WordPress Version:** 6.5.0
-**Plugin Version:** 2.0.0
-**Timestamp:** 2025-10-29T14:00:00Z
-**Environment:** production
-**Fingerprint:** wp-nav-pro-db-fail-456
-
-## Error Message
-Database connection failed during navigation cache rebuild
+      body: `## Error Details
+- Product: wp-navigator-pro v2.0.0
+- Error Type: PDOException
+- Message: Database connection failed during navigation cache rebuild
+- Environment: production
+- Occurrences: 5/5 (threshold reached)
+- Timestamp: 2025-10-29T14:00:00Z
+- Fingerprint: wp-nav-pro-db-fail-456
+- Site: xyz789abc123 (hashed)
 
 ## Stack Trace
 \`\`\`
@@ -219,6 +218,11 @@ PDOException: SQLSTATE[HY000] [2002] Connection refused
   at wp-navigator-pro/includes/cache-builder.php:89
 \`\`\`
 
+## PHP Environment
+- Runtime: php
+- File: wp-navigator-pro/includes/database.php
+- Line: 67
+
 ## Context
 Rebuilding navigation cache for site`
     };
@@ -226,36 +230,33 @@ Rebuilding navigation cache for site`
     const result = parseServerIssue(issue);
 
     expect(result.errors).toHaveLength(0);
-    expect(result.parsed.product).toBe('wp-navigator-pro');
+    expect(result.parsed.product).toBe('wp-navigator-pro v2.0.0');
     expect(result.parsed.errorType).toBe('PDOException');
-    expect(result.parsed.errorMessage).toBe('Database connection failed');
+    expect(result.parsed.errorMessage).toBe('Database connection failed during navigation cache rebuild');
     expect(result.parsed.occurrences).toBe(5);
     expect(result.parsed.fingerprint).toBe('wp-nav-pro-db-fail-456');
-    expect(result.parsed.version).toBe('2.0.0');
     expect(result.parsed.environment).toBe('production');
     expect(result.parsed.stackTrace).toContain('wp-navigator-pro/includes/database.php:67');
+    expect(result.parsed.location).toBe('wp-navigator-pro/includes/database.php');
     expect(result.parsed.breadcrumbs.length).toBeGreaterThan(0);
     expect(result.parsed.source).toBe('wordpress');
   });
 
-  it('parses wp-navigator-lite issue with inline format', () => {
+  it('parses wp-navigator-lite issue with CloakPipe format', () => {
     const issue = {
       title: '[wp-navigator-lite] TypeError: Cannot read property of undefined',
       labels: [{ name: 'robot' }, { name: 'source:wordpress' }],
       number: 125,
       html_url: 'https://github.com/test/repo/issues/125',
-      body: `**Error Type:** TypeError
-**Occurrences:** 2
-**Site Hash:** lite456xyz789
-**PHP Version:** 8.1.0
-**WordPress Version:** 6.4.0
-**Plugin Version:** 1.5.0
-**Timestamp:** 2025-10-29T15:30:00Z
-**Environment:** production
-**Fingerprint:** wp-nav-lite-type-err-789
-
-## Error Message
-Cannot read property 'menuItems' of undefined
+      body: `## Error Details
+- Product: wp-navigator-lite v1.5.0
+- Error Type: TypeError
+- Message: Cannot read property 'menuItems' of undefined
+- Environment: production
+- Occurrences: 2/3 (threshold not reached)
+- Timestamp: 2025-10-29T15:30:00Z
+- Fingerprint: wp-nav-lite-type-err-789
+- Site: lite456xyz789 (hashed)
 
 ## Stack Trace
 \`\`\`
@@ -264,6 +265,11 @@ TypeError: Cannot read property 'menuItems' of undefined
   at wp-navigator-lite/includes/shortcode.php:56
 \`\`\`
 
+## PHP Environment
+- Runtime: php
+- File: wp-navigator-lite/includes/menu-handler.php
+- Line: 34
+
 ## Context
 Rendering navigation shortcode in page`
     };
@@ -271,14 +277,14 @@ Rendering navigation shortcode in page`
     const result = parseServerIssue(issue);
 
     expect(result.errors).toHaveLength(0);
-    expect(result.parsed.product).toBe('wp-navigator-lite');
+    expect(result.parsed.product).toBe('wp-navigator-lite v1.5.0');
     expect(result.parsed.errorType).toBe('TypeError');
     expect(result.parsed.errorMessage).toContain('Cannot read property');
     expect(result.parsed.occurrences).toBe(2);
     expect(result.parsed.fingerprint).toBe('wp-nav-lite-type-err-789');
-    expect(result.parsed.version).toBe('1.5.0');
     expect(result.parsed.environment).toBe('production');
     expect(result.parsed.stackTrace).toContain('wp-navigator-lite/includes/menu-handler.php:34');
+    expect(result.parsed.location).toBe('wp-navigator-lite/includes/menu-handler.php');
     expect(result.parsed.breadcrumbs.length).toBeGreaterThan(0);
     expect(result.parsed.source).toBe('wordpress');
   });
@@ -289,9 +295,14 @@ Rendering navigation shortcode in page`
       labels: [{ name: 'robot' }, { name: 'source:wordpress' }],
       number: 126,
       html_url: 'https://github.com/test/repo/issues/126',
-      body: `**Error Type:** PDOException
-**Occurrences:** 1
-**Fingerprint:** old-product-test-123
+      body: `## Error Details
+- Product: claudecode-wordpress-mcp v0.9.0
+- Error Type: PDOException
+- Message: Test error
+- Environment: test
+- Occurrences: 1/3
+- Timestamp: 2025-10-30T00:00:00Z
+- Fingerprint: old-product-test-123
 
 ## Stack Trace
 \`\`\`
@@ -306,7 +317,7 @@ Testing backward compatibility`
     const result = parseServerIssue(issue);
 
     expect(result.errors).toHaveLength(0);
-    expect(result.parsed.product).toBe('claudecode-wordpress-mcp');
+    expect(result.parsed.product).toBe('claudecode-wordpress-mcp v0.9.0');
     expect(result.parsed.errorType).toBe('PDOException');
     expect(result.parsed.fingerprint).toBe('old-product-test-123');
     expect(result.parsed.source).toBe('wordpress');
@@ -316,25 +327,22 @@ Testing backward compatibility`
 });
 
 describe('VPS Issue Parsing', () => {
-  it('parses VPS issue with inline format', () => {
+  it('parses VPS issue with CloakPipe format (section + bullets)', () => {
     const issue = {
       title: '[brand-copilot] UnhandledRejection: ECONNREFUSED',
       labels: [{ name: 'robot' }, { name: 'source:vps' }],
       number: 456,
       html_url: 'https://github.com/test/repo/issues/456',
-      body: `**Error Type:** UnhandledRejection
-**Occurrences:** 1
-**Host:** vps-little-bear-apps-1
-**Job:** daily-report
-**Runtime:** Node.js v20.10.0
-**Tool Version:** 1.0.0
-**Timestamp:** 2025-10-29T03:00:00Z
-**Environment:** production
-**Fingerprint:** fetch-timeout-bc-456
-**Location:** api/fetch-brands.js:78
-
-## Error Message
-ECONNREFUSED: Connection refused at 127.0.0.1:3306
+      body: `## Error Details
+- Product: brand-copilot v1.0.0
+- Error Type: UnhandledRejection
+- Message: ECONNREFUSED: Connection refused at 127.0.0.1:3306
+- Environment: production
+- Occurrences: 1/3
+- Timestamp: 2025-10-29T03:00:00Z
+- Fingerprint: fetch-timeout-bc-456
+- Job: daily-report
+- Location: api/fetch-brands.js:78
 
 ## Stack Trace
 \`\`\`
@@ -350,14 +358,13 @@ Daily cron job (3am) - last successful run 24h ago`
     const result = parseServerIssue(issue);
 
     expect(result.errors).toHaveLength(0);
-    expect(result.parsed.product).toBe('brand-copilot');
+    expect(result.parsed.product).toBe('brand-copilot v1.0.0');
     expect(result.parsed.errorType).toBe('UnhandledRejection');
-    expect(result.parsed.errorMessage).toBe('ECONNREFUSED');
+    expect(result.parsed.errorMessage).toBe('ECONNREFUSED: Connection refused at 127.0.0.1:3306');
     expect(result.parsed.occurrences).toBe(1);
     expect(result.parsed.fingerprint).toBe('fetch-timeout-bc-456');
     expect(result.parsed.job).toBe('daily-report');
     expect(result.parsed.location).toBe('api/fetch-brands.js:78');
-    expect(result.parsed.version).toBe('1.0.0');
     expect(result.parsed.stackTrace).toContain('api/fetch-brands.js:78');
     expect(result.parsed.breadcrumbs).toContain('Cron job started: daily-report');
     expect(result.parsed.breadcrumbs).toContain('Error in api/fetch-brands.js:78');
