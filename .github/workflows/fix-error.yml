@@ -40,9 +40,7 @@ jobs:
       - name: Checkout Homeostat Repository
         uses: actions/checkout@v4
         with:
-          repository: littlebearapps/homeostat
           token: ${{ secrets.HOMEOSTAT_PAT }}
-          path: homeostat
 
       - name: Checkout Target Repository
         uses: actions/checkout@v4
@@ -58,7 +56,6 @@ jobs:
           node-version: '20'
 
       - name: Install Homeostat Dependencies
-        working-directory: homeostat
         run: npm ci
 
       - name: Fetch Issue Details
@@ -81,7 +78,6 @@ jobs:
 
       - name: Analyze Error Complexity
         id: analyze
-        working-directory: homeostat
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
           TARGET_REPO: ${{ inputs.repository }}
@@ -93,7 +89,6 @@ jobs:
 
       - name: Attempt Tier 1 Fix (DeepSeek Only)
         if: steps.analyze.outputs.tier == '1'
-        working-directory: homeostat
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
           DEEPSEEK_API_KEY: ${{ secrets.HOMEOSTAT_DEEPSEEK_API_KEY }}
@@ -105,11 +100,10 @@ jobs:
           node homeostat/execution/tier1-fix.js \
             --repo="${TARGET_REPO}" \
             --issue-number="${ISSUE_NUMBER}" \
-            --working-dir="../target-repo"
+            --working-dir="target-repo"
 
       - name: Attempt Tier 2 Fix (DeepSeek + GPT-5 Review)
         if: steps.analyze.outputs.tier == '2'
-        working-directory: homeostat
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
           DEEPSEEK_API_KEY: ${{ secrets.HOMEOSTAT_DEEPSEEK_API_KEY }}
@@ -121,11 +115,10 @@ jobs:
           node homeostat/execution/tier2-fix.js \
             --repo="${TARGET_REPO}" \
             --issue-number="${ISSUE_NUMBER}" \
-            --working-dir="../target-repo"
+            --working-dir="target-repo"
 
       - name: Attempt Tier 3 Fix (GPT-5 Only)
         if: steps.analyze.outputs.tier == '3'
-        working-directory: homeostat
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
           OPENAI_API_KEY: ${{ secrets.HOMEOSTAT_OPENAI_API_KEY }}
@@ -136,7 +129,7 @@ jobs:
           node homeostat/execution/tier3-fix.js \
             --repo="${TARGET_REPO}" \
             --issue-number="${ISSUE_NUMBER}" \
-            --working-dir="../target-repo"
+            --working-dir="target-repo"
 
       - name: Run Tests in Target Repository
         working-directory: target-repo
