@@ -11,6 +11,10 @@ on:
         description: 'Repository name (owner/repo)'
         required: true
         type: string
+      github_token:
+        description: 'GitHub PAT with repo + project scopes'
+        required: true
+        type: string
     secrets:
       HOMEOSTAT_DEEPSEEK_API_KEY:
         required: true
@@ -18,9 +22,6 @@ on:
       HOMEOSTAT_OPENAI_API_KEY:
         required: true
         description: 'GPT-5 API key for Tier 2/3 fixes'
-      HOMEOSTAT_PAT:
-        required: true
-        description: 'GitHub PAT with repo + project scopes'
 
 permissions:
   contents: write
@@ -41,13 +42,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: littlebearapps/homeostat
-          token: ${{ secrets.HOMEOSTAT_PAT }}
+          token: ${{ inputs.github_token }}
 
       - name: Checkout Target Repository
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repository }}
-          token: ${{ secrets.HOMEOSTAT_PAT }}
+          token: ${{ inputs.github_token }}
           path: target-repo
           fetch-depth: 0
 
@@ -62,7 +63,7 @@ jobs:
       - name: Fetch Issue Details
         id: issue
         env:
-          GH_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
+          GH_TOKEN: ${{ inputs.github_token }}
         run: |
           gh api repos/${{ inputs.repository }}/issues/${{ inputs.issue_number }} > issue.json
 
@@ -80,7 +81,7 @@ jobs:
       - name: Analyze Error Complexity
         id: analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
+          GITHUB_TOKEN: ${{ inputs.github_token }}
           TARGET_REPO: ${{ inputs.repository }}
           ISSUE_NUMBER: ${{ inputs.issue_number }}
         run: |
@@ -91,7 +92,7 @@ jobs:
       - name: Attempt Tier 1 Fix (DeepSeek Only)
         if: steps.analyze.outputs.tier == '1'
         env:
-          GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
+          GITHUB_TOKEN: ${{ inputs.github_token }}
           DEEPSEEK_API_KEY: ${{ secrets.HOMEOSTAT_DEEPSEEK_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.HOMEOSTAT_OPENAI_API_KEY }}
           TARGET_REPO: ${{ inputs.repository }}
@@ -106,7 +107,7 @@ jobs:
       - name: Attempt Tier 2 Fix (DeepSeek + GPT-5 Review)
         if: steps.analyze.outputs.tier == '2'
         env:
-          GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
+          GITHUB_TOKEN: ${{ inputs.github_token }}
           DEEPSEEK_API_KEY: ${{ secrets.HOMEOSTAT_DEEPSEEK_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.HOMEOSTAT_OPENAI_API_KEY }}
           TARGET_REPO: ${{ inputs.repository }}
@@ -121,7 +122,7 @@ jobs:
       - name: Attempt Tier 3 Fix (GPT-5 Only)
         if: steps.analyze.outputs.tier == '3'
         env:
-          GITHUB_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
+          GITHUB_TOKEN: ${{ inputs.github_token }}
           OPENAI_API_KEY: ${{ secrets.HOMEOSTAT_OPENAI_API_KEY }}
           TARGET_REPO: ${{ inputs.repository }}
           ISSUE_NUMBER: ${{ inputs.issue_number }}
@@ -148,7 +149,7 @@ jobs:
       - name: Update Circuit Breaker Labels
         if: always()
         env:
-          GH_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
+          GH_TOKEN: ${{ inputs.github_token }}
         run: |
           # Increment hop count
           CURRENT_HOP=$(gh api repos/${{ inputs.repository }}/issues/${{ inputs.issue_number }} \
@@ -172,7 +173,7 @@ jobs:
       - name: Comment on Issue
         if: always()
         env:
-          GH_TOKEN: ${{ secrets.HOMEOSTAT_PAT }}
+          GH_TOKEN: ${{ inputs.github_token }}
           JOB_STATUS: ${{ job.status }}
           TIER: ${{ steps.analyze.outputs.tier }}
         run: |
