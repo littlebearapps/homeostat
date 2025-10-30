@@ -40,6 +40,7 @@ jobs:
       - name: Checkout Homeostat Repository
         uses: actions/checkout@v4
         with:
+          repository: littlebearapps/homeostat
           token: ${{ secrets.HOMEOSTAT_PAT }}
 
       - name: Checkout Target Repository
