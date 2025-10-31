@@ -34,4 +34,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: TODO P4 end-to-end verification
-        run: echo "TODO: execute e2e suite"
+        run: echo "TODO - execute e2e suite"
