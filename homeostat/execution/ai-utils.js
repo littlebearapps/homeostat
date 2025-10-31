@@ -6,7 +6,7 @@ import { sanitizeForAPI } from '../../shared/privacy/sanitizer.js';
 import { isSensitiveFile } from '../config/sensitive-files.js';
 import { levenshteinDistance } from './retry-handler.js';
 
-export const DEFAULT_TIMEOUT = 30000;
+export const DEFAULT_TIMEOUT = 90000; // 90 seconds for GPT-5 complex analysis
 
 export function buildContextAwarePrompt(issue) {
   const surface = issue.surface || 'background';
