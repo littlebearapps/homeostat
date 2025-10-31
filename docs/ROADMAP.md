@@ -402,6 +402,119 @@ Transform Homeostat from a simple error-fixing tool into a **trusted, guarded au
 
 ---
 
+##### 11. Canary Deployment System
+**ROI**: ⭐⭐⭐ Medium • **Usefulness**: 6/10 • **Timeline**: 2-3 days
+
+**Description**: Gradual rollout of fixes with automatic rollback on error rate spike
+
+**Implementation**:
+- **Stage definitions**: 1%, 5%, 25%, 100% user rollout
+- **Chrome Extension distribution**: Update `manifest.json` with canary version flag, distribute to user subset
+- **Error rate monitoring**: Query analytics, compare canary vs stable error rates
+- **Auto-rollback**: Revert if canary errors >150% of stable baseline
+- **Staged progression**: Only advance to next stage if current stage passes duration threshold
+
+**Stage Configuration**:
+```javascript
+const CANARY_STAGES = [
+  { percentage: 1, duration: '2h', maxErrorIncrease: 1.5 },
+  { percentage: 5, duration: '6h', maxErrorIncrease: 1.3 },
+  { percentage: 25, duration: '24h', maxErrorIncrease: 1.2 },
+  { percentage: 100, duration: 'stable' }
+];
+```
+
+**Acceptance Criteria**:
+- [ ] Canary percentage distribution logic
+- [ ] Real-time error rate monitoring
+- [ ] Automatic rollback on threshold breach
+- [ ] Stage progression tracking
+- [ ] Notification on rollback
+
+**Files Changed**:
+- `homeostat/deployment/canary.js` (activate existing stub)
+- `homeostat/deployment/chrome-distribution.js` (new)
+- `homeostat/deployment/error-monitor.js` (new)
+- `homeostat/deployment/rollback.js` (new)
+
+---
+
+##### 12. Slack/Teams Integration
+**ROI**: ⭐⭐ Low-Medium • **Usefulness**: 5/10 • **Timeline**: 0.5-1 day
+
+**Description**: Real-time notifications for fix events
+
+**Implementation**:
+- Webhook notifications on: fix success, fix failure, cost threshold exceeded, circuit breaker triggered
+- Configurable notification levels (critical, warning, info)
+- Rate limiting (max 10 notifications/hour)
+- 24h deduplication (same issue, multiple failures)
+
+**Notification Types**:
+```javascript
+{
+  fixSuccess: '✅ Issue #123 fixed via Tier 2 (PR: <url>)',
+  fixFailure: '⚠️ Issue #123 fix failed: empty patch',
+  budgetExceeded: '💸 Repo budget exceeded: $0.08/$0.066 daily cap',
+  circuitBreaker: '🔌 Circuit breaker triggered: hop:3 on Issue #456'
+}
+```
+
+**Acceptance Criteria**:
+- [ ] Webhook integration (Slack/Teams/Discord)
+- [ ] Notification templates
+- [ ] Rate limiting and deduplication
+- [ ] Configurable notification levels
+- [ ] Test mode (dry-run notifications)
+
+**Files Changed**:
+- `homeostat/notifications/slack.js` (new)
+- `homeostat/notifications/teams.js` (new)
+- `.github/workflows/fix-error.yml` (emit notifications)
+
+---
+
+##### 13. Metrics Dashboard (Static)
+**ROI**: ⭐⭐ Low • **Usefulness**: 6/10 • **Timeline**: 1-2 days
+
+**Description**: Visual dashboard showing trends and performance metrics
+
+**Implementation**:
+- **Data aggregation**: Parse telemetry JSONL, compute weekly/monthly aggregates
+- **Static HTML dashboard**: Chart.js for visualizations (success rate, cost breakdown, tier distribution)
+- **Hosted on GitHub Pages**: Auto-update via weekly cron
+- **Charts**:
+  - Success rate trend (weekly)
+  - Cost breakdown by tier (monthly)
+  - Tier distribution (pie chart)
+  - P95 latency trend
+  - Pattern library hit rate (if enabled)
+
+**Dashboard Sections**:
+```html
+1. Overview (current month stats)
+2. Success Rate Trends (line chart, 12 weeks)
+3. Cost Analysis (stacked bar, per tier)
+4. Tier Distribution (pie chart)
+5. Latency Metrics (P95 line chart)
+6. Top Issues (table, most fixed errors)
+```
+
+**Acceptance Criteria**:
+- [ ] Data aggregation script
+- [ ] Static HTML dashboard with Chart.js
+- [ ] GitHub Pages deployment
+- [ ] Weekly auto-update workflow
+- [ ] Responsive design (mobile-friendly)
+
+**Files Changed**:
+- `scripts/aggregate-metrics.js` (new)
+- `dashboard/index.html` (new)
+- `dashboard/metrics.json` (generated)
+- `.github/workflows/update-dashboard.yml` (new)
+
+---
+
 #### Success Criteria (v2.2)
 - [ ] Zero token scope violations
 - [ ] Audit logs capturing 100% of actions
