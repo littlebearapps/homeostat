@@ -11,11 +11,10 @@ on:
         description: 'Repository name (owner/repo)'
         required: true
         type: string
-      github_token:
-        description: 'GitHub PAT with repo + project scopes'
-        required: true
-        type: string
     secrets:
+      repo_token:
+        required: true
+        description: 'GitHub PAT with repo + project scopes'
       HOMEOSTAT_DEEPSEEK_API_KEY:
         required: true
         description: 'DeepSeek V3.2-Exp API key'
@@ -42,13 +41,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: littlebearapps/homeostat
-          token: ${{ inputs.github_token }}
+          token: ${{ secrets.repo_token }}
 
       - name: Checkout Target Repository
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repository }}
-          token: ${{ inputs.github_token }}
+          token: ${{ secrets.repo_token }}
           path: target-repo
           fetch-depth: 0
 
@@ -63,7 +62,7 @@ jobs:
       - name: Fetch Issue Details
         id: issue
         env:
-          GH_TOKEN: ${{ inputs.github_token }}
+          GH_TOKEN: ${{ secrets.repo_token }}
         run: |
           gh api repos/${{ inputs.repository }}/issues/${{ inputs.issue_number }} > issue.json
 
@@ -81,57 +80,42 @@ jobs:
       - name: Analyze Error Complexity
         id: analyze
         env:
-          GITHUB_TOKEN: ${{ inputs.github_token }}
-          TARGET_REPO: ${{ inputs.repository }}
-          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          GITHUB_TOKEN: ${{ secrets.repo_token }}
+          GITHUB_REPOSITORY: ${{ inputs.repository }}
         run: |
-          node homeostat/routing/complexity-analyzer.js \
-            --repo="${TARGET_REPO}" \
-            --issue-number="${ISSUE_NUMBER}"
+          node homeostat/routing/complexity-analyzer.js --issue-number ${{ inputs.issue_number }}
 
       - name: Attempt Tier 1 Fix (DeepSeek Only)
         if: steps.analyze.outputs.tier == '1'
         env:
-          GITHUB_TOKEN: ${{ inputs.github_token }}
+          GITHUB_TOKEN: ${{ secrets.repo_token }}
+          GITHUB_REPOSITORY: ${{ inputs.repository }}
           DEEPSEEK_API_KEY: ${{ secrets.HOMEOSTAT_DEEPSEEK_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.HOMEOSTAT_OPENAI_API_KEY }}
-          TARGET_REPO: ${{ inputs.repository }}
-          ISSUE_NUMBER: ${{ inputs.issue_number }}
           HOMEOSTAT_ENV: production
         run: |
-          node homeostat/execution/tier1-fix.js \
-            --repo="${TARGET_REPO}" \
-            --issue-number="${ISSUE_NUMBER}" \
-            --working-dir="target-repo"
+          node homeostat/execution/tier1-fix.js --issue-number ${{ inputs.issue_number }}
 
       - name: Attempt Tier 2 Fix (DeepSeek + GPT-5 Review)
         if: steps.analyze.outputs.tier == '2'
         env:
-          GITHUB_TOKEN: ${{ inputs.github_token }}
+          GITHUB_TOKEN: ${{ secrets.repo_token }}
+          GITHUB_REPOSITORY: ${{ inputs.repository }}
           DEEPSEEK_API_KEY: ${{ secrets.HOMEOSTAT_DEEPSEEK_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.HOMEOSTAT_OPENAI_API_KEY }}
-          TARGET_REPO: ${{ inputs.repository }}
-          ISSUE_NUMBER: ${{ inputs.issue_number }}
           HOMEOSTAT_ENV: production
         run: |
-          node homeostat/execution/tier2-fix.js \
-            --repo="${TARGET_REPO}" \
-            --issue-number="${ISSUE_NUMBER}" \
-            --working-dir="target-repo"
+          node homeostat/execution/tier2-fix.js --issue-number ${{ inputs.issue_number }}
 
       - name: Attempt Tier 3 Fix (GPT-5 Only)
         if: steps.analyze.outputs.tier == '3'
         env:
-          GITHUB_TOKEN: ${{ inputs.github_token }}
+          GITHUB_TOKEN: ${{ secrets.repo_token }}
+          GITHUB_REPOSITORY: ${{ inputs.repository }}
           OPENAI_API_KEY: ${{ secrets.HOMEOSTAT_OPENAI_API_KEY }}
-          TARGET_REPO: ${{ inputs.repository }}
-          ISSUE_NUMBER: ${{ inputs.issue_number }}
           HOMEOSTAT_ENV: production
         run: |
-          node homeostat/execution/tier3-fix.js \
-            --repo="${TARGET_REPO}" \
-            --issue-number="${ISSUE_NUMBER}" \
-            --working-dir="target-repo"
+          node homeostat/execution/tier3-fix.js --issue-number ${{ inputs.issue_number }}
 
       - name: Run Tests in Target Repository
         working-directory: target-repo
@@ -146,10 +130,74 @@ jobs:
             echo "No test framework detected, skipping tests"
           fi
 
+      - name: Create Fix PR
+        if: steps.analyze.outputs.tier != ''
+        env:
+          GH_TOKEN: ${{ secrets.repo_token }}
+        working-directory: target-repo
+        run: |
+          # Check if patch was generated
+          if [ ! -f "../homeostat-fix.patch" ]; then
+            echo "No fix patch generated, skipping PR creation"
+            exit 0
+          fi
+
+          # Apply patch
+          if ! git apply ../homeostat-fix.patch; then
+            echo "⚠️ Failed to apply patch cleanly"
+            exit 1
+          fi
+
+          # Check if there are changes
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes after applying patch, skipping PR"
+            exit 0
+          fi
+
+          # Create branch
+          BRANCH_NAME="homeostat/fix-issue-${{ inputs.issue_number }}"
+          git checkout -b "$BRANCH_NAME"
+
+          # Commit changes
+          git add .
+          git commit -m "fix: automated fix for issue #${{ inputs.issue_number }}" \
+            -m "Generated with Homeostat (Tier ${{ steps.analyze.outputs.tier }})" \
+            -m "Fixes #${{ inputs.issue_number }}"
+
+          # Push branch
+          git push -u origin "$BRANCH_NAME"
+
+          # Create PR
+          gh pr create \
+            --title "fix: automated fix for issue #${{ inputs.issue_number }}" \
+            --body "🤖 **Automated fix generated by Homeostat (Tier ${{ steps.analyze.outputs.tier }})**
+
+## Issue
+Fixes #${{ inputs.issue_number }}
+
+## Changes
+This PR contains an automated fix generated by Homeostat's AI-powered error resolution system.
+
+## Testing
+- Homeostat validation: ✅ Passed
+- Repository tests: See workflow logs in [run #${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+## Next Steps
+1. Review the proposed changes carefully
+2. Run additional manual tests if needed
+3. Merge if the fix resolves the issue
+
+---
+Generated by [Homeostat](https://github.com/littlebearapps/homeostat) • Tier ${{ steps.analyze.outputs.tier }}" \
+            --base main \
+            --head "$BRANCH_NAME"
+
+          echo "✅ PR created successfully"
+
       - name: Update Circuit Breaker Labels
         if: always()
         env:
-          GH_TOKEN: ${{ inputs.github_token }}
+          GH_TOKEN: ${{ secrets.repo_token }}
         run: |
           # Increment hop count
           CURRENT_HOP=$(gh api repos/${{ inputs.repository }}/issues/${{ inputs.issue_number }} \
@@ -173,7 +221,7 @@ jobs:
       - name: Comment on Issue
         if: always()
         env:
-          GH_TOKEN: ${{ inputs.github_token }}
+          GH_TOKEN: ${{ secrets.repo_token }}
           JOB_STATUS: ${{ job.status }}
           TIER: ${{ steps.analyze.outputs.tier }}
         run: |
