@@ -15,6 +15,7 @@ Homeostat is an agentic fix pipeline that restores your repo to a steady, health
 - `.claude-context` - Session state
 - `AGENTS.md` - AI agent coordination
 - `README.md` - Project documentation
+- `docs/ROADMAP.md` - **Complete v2-v4 product roadmap (ALL future ideas organized)** ⭐⭐⭐
 - `docs/NEXT-STEPS.md` - **Testing, deployment, and validation guide (START HERE)** ⭐
 - `docs/REMAINING-TASKS.md` - **Phase 2-3 deployment checklist**
 - `docs/API-MANAGEMENT-PLAN.md` - **API cost management plan (GPT-5 validated, 4-week rollout)** 💰
